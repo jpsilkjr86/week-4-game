@@ -1,0 +1,40 @@
+div#red
+{
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	background: red;
+	float: left;
+}
+
+div#blue
+{
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	background: blue;
+	float: left;
+}
+
+div#yellow
+{
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	background: yellow;
+	float: left;
+}
+
+div#green
+{
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	background: green;
+	float: left;
+}
+
+.characters-div:hover
+{
+	opacity: .8;
+}
