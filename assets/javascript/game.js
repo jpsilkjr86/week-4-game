@@ -131,10 +131,47 @@ var yellowPlayer = new playerObj(50, 1000, 1);
 var yellowEnemy = new enemyObj(100, 1000);
 var greenPlayer = new playerObj(1, 30, 20);
 var greenEnemy = new enemyObj(2, 30);
-			
+
+var charMenu = ["red", "blue", "yellow", "green"]; // correspond to div id's
 
 $(document).ready(function(){
 
+	function startScreen(){
+
+		// First populate the charSelectSpace with the menu of characters
+		jQuery.each(charMenu, function(i){
+			$("#charSelectSpace").append('<div id="' + charMenu[i] + '" class="characters-div"></div>');
+		});
+
+		$(".characters-div").on("click",function(){
+			var selectedCharId = $(this).attr("id"); // selectedCharId = the id of the clicked chararacter div
+			var enemyCharAry = [];  // enemyChars is an array which consists of each .characters-div id not clicked
+			// loop pushes each id not equal to selectedCharId into enemyChars array, thus determining who's the enemy
+			$(".characters-div[id!=" + selectedCharId + "]").each(function(){
+				var enemyCharId = $(this).attr("id");
+				enemyCharAry.push(enemyCharId);
+			});
+			// Call game function
+			gameOn(selectedCharId, enemyCharAry);
+			$("div.characters-div").off("click"); // removes click event listener for all characters div's
+		});
+	}
+
+	function gameOn(player, enemyAry){
+		console.log("Player is:", player);
+		console.log("Enemies are:", enemyAry);
+	}
+
+	startScreen();
+});
+
+	// might not be necessary
+	// var startScreenState = true;
+	// var gameOnState = false;
+	// var gameOverState = false;
+
+
+	/*
 	// events for error checking
 	$(document).keypress(function(e){
 		// press q any time to get character stats
@@ -187,38 +224,8 @@ $(document).ready(function(){
 				"greenPlayer AP:", greenPlayer.attackPower, "greenPlayer AP Increase:", greenPlayer.apIncrease);
 			console.log("redEnemy HP:", redEnemy.healthPoints, "redEnemy AP:", redEnemy.attackPower);
 		}
-	});
-	
+	});  */
 
-	// might not be necessary
-	var startScreenState = true;
-	var gameOnState = false;
-	var gameOverState = false;
-
-	function startScreen(){
-		$(".characters-div").on("click",function(){
-			var thisCharDiv = $(this);
-			var selectedChar = thisCharDiv.attr("id"); // selectedChar = the one clicked
-			var enemyCharAry = [];  // enemyChars is an array which consists of each .characters-div id not clicked
-			// loop which pushes each id not equal to selectedChar into enemyChars array.
-			$(".characters-div[id!=" + selectedChar + "]").each(function(){
-				var enemyCharDiv = $(this);
-				enemyCharAry.push(enemyCharDiv.attr("id"));
-			});
-			startScreenState = false;
-			gameOn(selectedChar, enemyCharAry);
-			$("div.characters-div").off("click"); // removes click event listener for all characters div's
-		});
-	}
-
-	function gameOn(player, enemyAry){
-		console.log("Player is:", player);
-		console.log("Enemies are:", enemyAry);
-	}
-
-
-	startScreen();
-});
 
 
 
