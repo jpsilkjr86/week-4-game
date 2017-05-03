@@ -95,11 +95,11 @@ function charObj (name, divId, cssClass, // these 3 help the program identify & 
 	this.apIncrAsPlayer = apIncrAsPlayer; // attack power increase amount if character is selected as player
 }
 
-// add method to charObj called playerAttack() which takes enemyHP argument
-charObj.prototype.attack = function(otherCharHP) {
-	otherCharHP -= this.attackPower;  
+// add method to charObj called attack() which takes enemyHP argument
+charObj.prototype.attack = function(defender) {
+	defender.healthPoints -= this.attackPower;  
 	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
-	return otherCharHP;
+	return defender;
 }
 
 // Global object declarations, as new instances of each object type. These are essentially a library of 
@@ -108,10 +108,10 @@ charObj.prototype.attack = function(otherCharHP) {
 
 var allChars = [];
 
-var redChar = new charObj("red", "red", "character", 100, 0, 0, 10, 15, 5);
-var blueChar = new charObj("blue", "blue", "character", 120, 0, 0, 8, 12, 7);
-var yellowChar = new charObj("yellow", "yellow", "character", 140, 0, 0, 20, 40, 1);
-var greenChar = new charObj("green", "green", "character", 60, 0, 0, 5, 10, 20);
+var redChar = new charObj("Red", "red", "character", 100, 0, 0, 10, 15, 5);
+var blueChar = new charObj("Blue", "blue", "character", 120, 0, 0, 8, 12, 7);
+var yellowChar = new charObj("Yellow", "yellow", "character", 140, 0, 0, 20, 40, 5);
+var greenChar = new charObj("Green", "green", "character", 60, 0, 0, 5, 10, 20);
 
 // push player objects into an array	// push enemy objects into an array
 allChars.push(redChar);
@@ -119,6 +119,10 @@ allChars.push(blueChar);
 allChars.push(yellowChar);
 allChars.push(greenChar);
 
+
+// GLOBAL VARIABLES
+
+var attackButton = '<button type="button" id="attackbtn" class="btn btn-danger">Attack!</button><br/>';
 
 // GLOBAL METHOD DECLARATIONS
 
@@ -145,15 +149,16 @@ function clearSpace(spaceId) {
 
 // clears a div by id
 function clearDivId(divId) {
-	$(divId).html("");
+	console.log("divId:",divId);
+	$(divId).remove();
 }
 
-// Uses divId argument to get the correct player object from the allChars array according to allChars[i].name, 
+// Uses divId argument to get the correct player object from the allChars array according to allChars[i].divId, 
 // returns the matching object element.		
-function getPlayerObj (divId) {
+function getPlayerObj (argId) {
 	var gotObj;
 	jQuery.each(allChars, function(i){
-		if (divId === allChars[i].name)
+		if (argId === allChars[i].divId)
 		{ gotObj = allChars[i]; }				
 	});
 	return gotObj;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
@@ -172,16 +177,46 @@ function getEnemyCharIds (playerDivId) {
 
 function getEnemyCharObjs (idAry) {
 	var objAry = [];
-	// checks each element of idAry[k] + "Enemy" against .name properties of each element of allChars[j] array
+	// checks each element of idAry[k] + "Enemy" against .divId properties of each element of allChars[j] array
 	// in order to populate the list of enemy objects, using two for-loops.
 	jQuery.each(allChars, function(j){
 		jQuery.each(idAry, function(k){
-			if (idAry[k] === allChars[j].name) 
+			if (idAry[k] === allChars[j].divId) 
 			 { objAry.push(allChars[j]); }	
 		});							
 	});
 	return objAry;
 }
+
+function addCssToObj (obj, className) {
+	obj.cssClass += (" " + className);
+	return obj;
+}
+
+function addCssToObjAry (ary, className) {
+	jQuery.each(ary, function(i){
+		ary[i].cssClass += (" " + className);
+	});
+	return ary;
+}
+
+function getIndexByDivId (id, ary) {
+	var index;
+	jQuery.each(ary, function(j){
+		if (ary[j].divId === id)
+		{ index = j; }
+	});
+	return index;
+}
+
+function addBtn(space, btnName) {
+	$(space).append(btnName);
+}
+
+function removeBtn(btnId) {
+	$(btnId).remove();
+}
+	
 
 // MAIN GAME FUNCTIONS
 
@@ -224,37 +259,102 @@ $(document).ready(function(){
 		});
 
 		// Add ".player" and ".enemy" CSS classes for styling
-		player.cssClass += " player";
-
-		jQuery.each(enemyAry, function(i){
-			enemyAry[i].cssClass += " enemy";
-		});
+		player = addCssToObj(player, "player");
+		enemyAry = addCssToObjAry(enemyAry, "enemy");
+		
 
 		// Prints character div's to #yourCharSpace and #enemiesSpace
 		printOneChar("#yourCharSpace", player);
 		printCharAry("#enemiesSpace", enemyAry);
+
+		// sets initial attack power stats for player and enemy.
+		player.attackPower = player.apAsPlayer; 
+		player.apIncrease = player.apIncrAsPlayer;
+		jQuery.each(enemyAry, function(i){
+			enemyAry[i].attackPower = enemyAry[i].apAsEnemy;
+		});
+
+		// Calls enemySelect function
 		enemySelect();
 
 		function enemySelect() {
-			// Activates event listener for selecting enemy
-			$(".enemy").on("click", function(){
-				
-				// test code
-				var selectedEnemyId = $(this).attr('id');
+			
+			if (enemyAry.length === 0) {
+				console.log("Great job! All enemies have been defeated. You beat the game!")
+			}
 
-				console.log("Selected Enemy:", selectedEnemyId);
+			else {
+				// Activates event listener for selecting enemy
+				$(".enemy").on("click", function(){
+					
+					// test code
+					var selectedEnemyId = $(this).attr('id');
 
-				clearDivId("#" + selectedEnemyId);
+					console.log("Selected Enemy:", selectedEnemyId);
 
-				fightMode(selectedEnemyId);
+					clearDivId("#" + selectedEnemyId);
 
-				$("div.enemy").off("click"); // removes click event listener for all enemy div's.
-			});
+					var selectedEnemyIndex = getIndexByDivId(selectedEnemyId, enemyAry);
+
+					console.log(selectedEnemyIndex);
+
+					// calls fightMode, sends the index of the selected enemy
+					fightMode(selectedEnemyIndex);
+
+					$("div.enemy").off("click"); // removes click event listener for all enemy div's.
+				});
+			}
 		}
 		
-		function fightMode(defenderId) {
-			console.log("You are fighting", defenderId);
-			// need to change id to object so we don't lose track?
+		function fightMode(defIndex) {
+			
+			var def = enemyAry[defIndex]; // def is the defender, i.e. the enemy selected from enemySelect()
+
+			// defIndex stands for "index of defender", i.e. the index of the enemy the user is attacking
+			console.log("You, " + player.name + ", are fighting " + def.name);
+			
+			addBtn("#defenderSpace", attackButton);
+
+			printOneChar("#defenderSpace", enemyAry[defIndex]);
+
+			$("#attackbtn").on("click", function(){
+
+				// Here are the attack methods:
+				def = player.attack(def); // player attacks def, returns def with reduced HP.
+
+				player = def.attack(player); // defender attacks player, returns player with reduced HP.
+
+				console.log("Player", player.name, "stats: HP is", player.healthPoints, "AP is", player.attackPower);
+				console.log("Defender", def.name, "stats: HP is", def.healthPoints, "AP is", def.attackPower);
+
+				// if player dies
+				if (player.healthPoints <= 0) {
+					removeBtn("#attackbtn");
+					clearDivId("#" + player.divId);
+					console.log("Game Over. Your HP is now " + player.healthPoints + ". You Lose.");
+				}
+
+				// if player defeats the enemy
+				else if (def.healthPoints <= 0) {
+					removeBtn("#attackbtn");
+					clearDivId("#" + def.divId);
+					console.log("Enemy " + def.name + " has been defeated. Good job!");
+					
+					// removes defeated enemy from enemyAry
+					enemyAry.splice(defIndex, 1);
+
+					// console logs player and remaining enemies
+					console.log("Player is:", player);
+					jQuery.each(enemyAry, function(i){
+						console.log("Enemy " + i + " is " + enemyAry[i].name);
+					});
+
+					// pass ball back to enemySelect
+					enemySelect();
+				}
+
+			});
+			
 		}
 
 	} // end gameOn() function
