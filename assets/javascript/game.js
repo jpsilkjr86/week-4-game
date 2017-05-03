@@ -53,26 +53,12 @@ GAME STATES:
 PSEUDO-CODE:
 
 	Declare global object variables for each character.
-		-Each character has two objects: one as player, one as enemey
-		-All player objects are instances of playerObjectType() object constructor
-			Example Object = {
-				attackPower: value, // (initial value)
-				healthPoints: value, // (initial value)
-				playerAttack method (enemyHP) {  // should use prototype approach to declare this method
-					enemyHP -= this.attackPower;  
-					this.attackPower += [value to increment];  // player's attack value increases each time
-					return enemyHP
-				}
-			}
-		-All enemy objects are instances of enemyObjectType() object constructor
-			Example Object = {
-				attackPower: value, // (initial value)
-				healthPoints: value, // (initial value)
-				enemyAttack method (playerHP) {  // should use prototype approach to declare this method
-					playerHP -= this.attackPower;  // 
-					return playerHP
-				}
-			}
+		-Each character is set as an object with certain stats.
+			*By default, the HP is the same whether the character is an enemy or a player.
+			*The attack power and attack power increase amount is set intitially to zero.
+			*If the character is chosen as the player, then the attack power will be lower but will have 
+			an attack power increase amount greater than zero.
+			*If the character is an enemy, then the attack power is set higher but will not increase in the game.
 		-When user selects player character, it will send the objects as parameters, and game function will 
 		redeclare a new object instance of player and enemies as new local objects
 
@@ -93,60 +79,43 @@ PSEUDO-CODE:
 
 */
 
-// object constructor for player characters
-function playerObj (dvId, nm, ap, hp, apIncr){
-	this.divId = dvId;
-	this.name = nm;
-	this.attackPower = ap;
-	this.healthPoints = hp;
-	this.apIncrease = apIncr;  // amount of attack power that increases each time the player attacks
+// object constructor for all characters
+function charObj (divId, name, healthPoints, attackPower, apIncrease, apAsPlayer, apAsEnemy, apIncrAsPlayer) {
+	this.divId = divId;
+	this.name = name;
+	this.healthPoints = healthPoints;
+	this.attackPower = attackPower;
+	this.apIncrease = apIncrease;  // amount of attack power that increases each time the player attacks, initial = 0
+	this.apAsPlayer = apAsPlayer; // attack power if character is selected as player
+	this.apAsEnemy = apAsEnemy; // attack power if character is selected as enemy
+	this.apIncrAsPlayer = apIncrAsPlayer; // attack power increase amount if character is selected as player
 }
 
-// add method to playerObj called playerAttack() which takes enemyHP argument
-playerObj.prototype.playerAttack = function(enemyHP){
-	enemyHP -= this.attackPower;  
-	this.attackPower += this.apIncrease;  // player's attack value increases each time
-	return enemyHP;
-}
-
-// object constructor for enemy characters
-function enemyObj (dvId, nm, ap, hp){
-	this.divId = dvId;
-	this.name = nm;
-	this.attackPower = ap;
-	this.healthPoints = hp;
-}
-
-// add method to enemyObj called enemyAttack() which takes playerHP argument
-enemyObj.prototype.enemyAttack = function(playerHP){
-	playerHP -= this.attackPower;  // enemy's attack power is a constant
-	return playerHP;
+// add method to charObj called playerAttack() which takes enemyHP argument
+charObj.prototype.attack = function(otherCharHP) {
+	otherCharHP -= this.attackPower;  
+	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
+	return otherCharHP;
 }
 
 // Global object declarations, as new instances of each object type. These are essentially a library of 
 // available players and objects, which will ultimately be determined when user chooses his/her player
 // character.
 
-var allPlayerChars = [];
-var allEnemyChars = [];
+var allChars = [];
 
-var redPlayer = new playerObj("red", "redPlayer", 10, 100, 8);
-var redEnemy = new enemyObj("red", "redEnemy", 20, 100);
-var bluePlayer = new playerObj("blue", "bluePlayer", 15, 90, 5);
-var blueEnemy = new enemyObj("blue", "blueEnemy", 25, 90);
-var yellowPlayer = new playerObj("yellow", "yellowPlayer", 50, 1000, 1);
-var yellowEnemy = new enemyObj("yellow", "yellowEnemy", 100, 1000);
-var greenPlayer = new playerObj("green", "greenPlayer", 1, 30, 20);
-var greenEnemy = new enemyObj("green", "greenEnemy", 2, 30);
+var redChar = new charObj("red", "red", 100, 0, 0, 10, 15, 5);
+var blueChar = new charObj("blue", "blue", 120, 0, 0, 8, 12, 7);
+var yellowChar = new charObj("yellow", "yellow", 140, 0, 0, 20, 40, 1);
+var greenChar = new charObj("green", "green", 60, 0, 0, 5, 10, 20);
 
 // push player objects into an array	// push enemy objects into an array
-allPlayerChars.push(redPlayer); 		allEnemyChars.push(redEnemy); 
-allPlayerChars.push(bluePlayer); 		allEnemyChars.push(blueEnemy); 
-allPlayerChars.push(yellowPlayer); 		allEnemyChars.push(yellowEnemy);
-allPlayerChars.push(greenPlayer); 		allEnemyChars.push(greenEnemy);
+allChars.push(redChar);
+allChars.push(blueChar);
+allChars.push(yellowChar);
+allChars.push(greenChar);
 
 var charDivIdMenu = ["red", "blue", "yellow", "green"]; // correspond to div id's
-
 
 
 // GLOBAL METHOD DECLARATIONS
@@ -158,22 +127,22 @@ function populateCharDivs() {
 	});
 }
 
-// Uses divId argument to get the correct playerObj from the allPlayerChars array according to allPlayerChars[i].name, 
+// Uses divId argument to get the correct player object from the allChars array according to allChars[i].name, 
 // returns the matching object element.		
 function getPlayerObj (divId) {
 	var gotObj;
-	jQuery.each(allPlayerChars, function(i){
-		if ((divId + "Player") === allPlayerChars[i].name)
-		{ gotObj = allPlayerChars[i]; }				
+	jQuery.each(allChars, function(i){
+		if (divId === allChars[i].name)
+		{ gotObj = allChars[i]; }				
 	});
 	return gotObj;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
 }
 
-function getEnemyCharIds (playerId) {
+function getEnemyCharIds (playerDivId) {
 	var enemyAry = [];
-	// loop pushes each id not equal to the playerId into enemyCharIdAry, 
+	// loop pushes each id not equal to the playerDivId into enemyCharIdAry, 
 	// thus determining the div id's of the enemies
-	$(".characters-div[id!=" + playerId + "]").each(function(){
+	$(".characters-div[id!=" + playerDivId + "]").each(function(){
 		var enemyId = $(this).attr("id");
 		enemyAry.push(enemyId);
 	});
@@ -182,12 +151,12 @@ function getEnemyCharIds (playerId) {
 
 function getEnemyCharObjs (idAry) {
 	var objAry = [];
-	// checks each element of idAry[k] + "Enemy" against .name properties of each element of allEnemyChars[j] array
+	// checks each element of idAry[k] + "Enemy" against .name properties of each element of allChars[j] array
 	// in order to populate the list of enemy objects, using two for-loops.
-	jQuery.each(allEnemyChars, function(j){
+	jQuery.each(allChars, function(j){
 		jQuery.each(idAry, function(k){
-			if (idAry[k] + "Enemy" === allEnemyChars[j].name) 
-			 { objAry.push(allEnemyChars[j]); }	
+			if (idAry[k] === allChars[j].name) 
+			 { objAry.push(allChars[j]); }	
 		});							
 	});
 	return objAry;
@@ -235,8 +204,10 @@ $(document).ready(function(){
 
 		// Move div's from #charSelectSpace to #yourCharSpace and #enemiesSpace
 
+		// Add ".player" and ".enemy" CSS classes for styling
+
 		// Activates event listener for selecting enemy
-		
+
 	}
 
 	startScreen();
