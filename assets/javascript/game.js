@@ -94,7 +94,8 @@ PSEUDO-CODE:
 */
 
 // object constructor for player characters
-function playerObj (nm, ap, hp, apIncr){
+function playerObj (dvId, nm, ap, hp, apIncr){
+	this.divId = dvId;
 	this.name = nm;
 	this.attackPower = ap;
 	this.healthPoints = hp;
@@ -109,7 +110,8 @@ playerObj.prototype.playerAttack = function(enemyHP){
 }
 
 // object constructor for enemy characters
-function enemyObj (nm, ap, hp){
+function enemyObj (dvId, nm, ap, hp){
+	this.divId = dvId;
 	this.name = nm;
 	this.attackPower = ap;
 	this.healthPoints = hp;
@@ -128,63 +130,97 @@ enemyObj.prototype.enemyAttack = function(playerHP){
 var allPlayerChars = [];
 var allEnemyChars = [];
 
-var redPlayer = new playerObj("redPlayer", 10, 100, 8);
-var redEnemy = new enemyObj("redEnemy", 20, 100);
-var bluePlayer = new playerObj("bluePlayer", 15, 90, 5);
-var blueEnemy = new enemyObj("blueEnemy", 25, 90);
-var yellowPlayer = new playerObj("yellowPlayer", 50, 1000, 1);
-var yellowEnemy = new enemyObj("yellowEnemy", 100, 1000);
-var greenPlayer = new playerObj("greenPlayer", 1, 30, 20);
-var greenEnemy = new enemyObj("greenEnemy", 2, 30);
+var redPlayer = new playerObj("red", "redPlayer", 10, 100, 8);
+var redEnemy = new enemyObj("red", "redEnemy", 20, 100);
+var bluePlayer = new playerObj("blue", "bluePlayer", 15, 90, 5);
+var blueEnemy = new enemyObj("blue", "blueEnemy", 25, 90);
+var yellowPlayer = new playerObj("yellow", "yellowPlayer", 50, 1000, 1);
+var yellowEnemy = new enemyObj("yellow", "yellowEnemy", 100, 1000);
+var greenPlayer = new playerObj("green", "greenPlayer", 1, 30, 20);
+var greenEnemy = new enemyObj("green", "greenEnemy", 2, 30);
 
-// push objects onto an array
+// push player objects into an array	// push enemy objects into an array
 allPlayerChars.push(redPlayer); 		allEnemyChars.push(redEnemy); 
 allPlayerChars.push(bluePlayer); 		allEnemyChars.push(blueEnemy); 
 allPlayerChars.push(yellowPlayer); 		allEnemyChars.push(yellowEnemy);
 allPlayerChars.push(greenPlayer); 		allEnemyChars.push(greenEnemy);
 
-var charIdMenu = ["red", "blue", "yellow", "green"]; // correspond to div id's
+var charDivIdMenu = ["red", "blue", "yellow", "green"]; // correspond to div id's
+
+
+
+// GLOBAL METHOD DECLARATIONS
+
+// populates character div's on #charSelectSpace on the DOM
+function populateCharDivs() {
+	jQuery.each(charDivIdMenu, function(i){
+		$("#charSelectSpace").append('<div id="' + charDivIdMenu[i] + '" class="characters-div"></div>');
+	});
+}
+
+// Uses divId argument to get the correct playerObj from the allPlayerChars array according to allPlayerChars[i].name, 
+// returns the matching object element.		
+function getPlayerObj (divId) {
+	var gotObj;
+	jQuery.each(allPlayerChars, function(i){
+		if ((divId + "Player") === allPlayerChars[i].name)
+		{ gotObj = allPlayerChars[i]; }				
+	});
+	return gotObj;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
+}
+
+function getEnemyCharIds (playerId) {
+	var enemyAry = [];
+	// loop pushes each id not equal to the playerId into enemyCharIdAry, 
+	// thus determining the div id's of the enemies
+	$(".characters-div[id!=" + playerId + "]").each(function(){
+		var enemyId = $(this).attr("id");
+		enemyAry.push(enemyId);
+	});
+	return enemyAry;
+}
+
+function getEnemyCharObjs (idAry) {
+	var objAry = [];
+	// checks each element of idAry[k] + "Enemy" against .name properties of each element of allEnemyChars[j] array
+	// in order to populate the list of enemy objects, using two for-loops.
+	jQuery.each(allEnemyChars, function(j){
+		jQuery.each(idAry, function(k){
+			if (idAry[k] + "Enemy" === allEnemyChars[j].name) 
+			 { objAry.push(allEnemyChars[j]); }	
+		});							
+	});
+	return objAry;
+}
+
+// MAIN GAME FUNCTIONS
 
 $(document).ready(function(){
 
 	function startScreen(){
 		// Declares local variables
 		var selectedCharId = ""; // selectedCharId = the id of the clicked chararacter div
-		var enemyCharIdAry = []; // enemyCharIdAry is an array which consists of each .characters-div id not clicked
 		var selectedCharObj; // selected character object with all its properties
+		var enemyCharIdAry = []; // enemyCharIdAry is an array which consists of each .characters-div id not clicked
 		var enemyCharObjAry = []; // an array of objects which will become the list of enemies
 
-		// Populates the charSelectSpace with the menu of characters upon startScreen() function call
-		jQuery.each(charIdMenu, function(i){
-			$("#charSelectSpace").append('<div id="' + charIdMenu[i] + '" class="characters-div"></div>');
-		});
+		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
+		populateCharDivs();
 
-		// click event listener activated
+		// Activates click event listener
 		$(".characters-div").on("click", function(){
 			
-			selectedCharId = $(this).attr("id"); // sets selectedCharId equal to the id of the .character-div clicked
+			// sets selectedCharId equal to the id of the .character-div clicked
+			selectedCharId = $(this).attr("id"); 
+			
+			// gets the selectedCharObj according to the div id clicked (i.e. the player object)
+			selectedCharObj = getPlayerObj(selectedCharId);
 
-			// Uses selectedCharId to get the correct playerObj from the allPlayerChars array according to allPlayerChars[i].name, 
-			// and sets the matching object element equal to selectedCharObj.
-			jQuery.each(allPlayerChars, function(i){
-				if (selectedCharId + "Player" === allPlayerChars[i].name)
-				{ selectedCharObj = allPlayerChars[i]; }				
-			});	
+			// gets enemy character div id's
+			enemyCharIdAry = getEnemyCharIds(selectedCharId);
 
-			// loop pushes each id != selectedCharId into enemyCharIdAry, thus determining the div id's of the enemies
-			$(".characters-div[id!=" + selectedCharId + "]").each(function(){
-				var enemyCharId = $(this).attr("id");
-				enemyCharIdAry.push(enemyCharId);
-			});
-
-			// checks each enemyCharIdAry[k] + "Enemy" against each allEnemyChars[j].name in order
-			// to populate the list of enemy objects (enemyCharObjAry), using two for-loops.
-			jQuery.each(allEnemyChars, function(j){
-				jQuery.each(enemyCharIdAry, function(k){
-					if (enemyCharIdAry[k] + "Enemy" === allEnemyChars[j].name) 
-					 { enemyCharObjAry.push(allEnemyChars[j]); }	
-				});							
-			});	
+			// gets enemy character objects according to the div id's of the enemies
+			enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);	
 
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
 			$("div.characters-div").off("click"); // removes click event listener for all characters div's.
@@ -195,11 +231,16 @@ $(document).ready(function(){
 		console.log("Player is:", player);
 		jQuery.each(enemyAry, function(i){
 			console.log("Enemy " + i + " is " + enemyAry[i].name);
-		});		
+		});
+
+		// Move div's from #charSelectSpace to #yourCharSpace and #enemiesSpace
+
+		// Activates event listener for selecting enemy
+		
 	}
 
 	startScreen();
-});
+}); // end Document Ready
 
 	// might not be necessary
 	// var startScreenState = true;
