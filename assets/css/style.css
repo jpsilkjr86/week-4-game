@@ -1,12 +1,17 @@
-.characters-div
-{
-	border: 5px solid #666666;
-}
+.character
+{ border: 5px solid #666666; }
 
-.characters-div:hover
-{
-	opacity: .8;
-}
+.player
+{ border: 5px solid blue; }
+
+.enemy
+{ border: 5px solid red; }
+
+.character:hover
+{ opacity: .8; }
+
+.player:hover
+{ opacity: 1;}
 
 div#red
 {
@@ -44,12 +49,3 @@ div#green
 	float: left;
 }
 
-.player
-{
-	border: 5px solid red;
-}
-
-.enemy
-{
-	border: 5px solid blue;
-}

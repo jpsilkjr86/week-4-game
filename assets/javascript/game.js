@@ -80,11 +80,15 @@ PSEUDO-CODE:
 */
 
 // object constructor for all characters
-function charObj (divId, name, healthPoints, attackPower, apIncrease, apAsPlayer, apAsEnemy, apIncrAsPlayer) {
-	this.divId = divId;
-	this.name = name;
-	this.healthPoints = healthPoints;
-	this.attackPower = attackPower;
+function charObj (name, divId, cssClass, // these 3 help the program identify & bind the objects to the DOM
+	healthPoints, attackPower, apIncrease, // these 3 are base stats. AP and apIncrease are 0 before char is selected
+	apAsPlayer, apAsEnemy, apIncrAsPlayer) {  // these 3 are assigned depending on if char is player or enemy
+
+	this.name = name; // for convenience in getting the character's name
+	this.divId = divId;  // corresponds to div on the DOM
+	this.cssClass = cssClass; // corresponds to CSS styles
+	this.healthPoints = healthPoints;  // same no matter if the char is a player or enemy
+	this.attackPower = attackPower; // how much HP can the character inflict on another
 	this.apIncrease = apIncrease;  // amount of attack power that increases each time the player attacks, initial = 0
 	this.apAsPlayer = apAsPlayer; // attack power if character is selected as player
 	this.apAsEnemy = apAsEnemy; // attack power if character is selected as enemy
@@ -104,10 +108,10 @@ charObj.prototype.attack = function(otherCharHP) {
 
 var allChars = [];
 
-var redChar = new charObj("red", "red", 100, 0, 0, 10, 15, 5);
-var blueChar = new charObj("blue", "blue", 120, 0, 0, 8, 12, 7);
-var yellowChar = new charObj("yellow", "yellow", 140, 0, 0, 20, 40, 1);
-var greenChar = new charObj("green", "green", 60, 0, 0, 5, 10, 20);
+var redChar = new charObj("red", "red", "character", 100, 0, 0, 10, 15, 5);
+var blueChar = new charObj("blue", "blue", "character", 120, 0, 0, 8, 12, 7);
+var yellowChar = new charObj("yellow", "yellow", "character", 140, 0, 0, 20, 40, 1);
+var greenChar = new charObj("green", "green", "character", 60, 0, 0, 5, 10, 20);
 
 // push player objects into an array	// push enemy objects into an array
 allChars.push(redChar);
@@ -115,16 +119,28 @@ allChars.push(blueChar);
 allChars.push(yellowChar);
 allChars.push(greenChar);
 
-var charDivIdMenu = ["red", "blue", "yellow", "green"]; // correspond to div id's
-
 
 // GLOBAL METHOD DECLARATIONS
 
-// populates character div's on #charSelectSpace on the DOM
-function populateCharDivs() {
-	jQuery.each(charDivIdMenu, function(i){
-		$("#charSelectSpace").append('<div id="' + charDivIdMenu[i] + '" class="characters-div"></div>');
+// populates character div's inside a given space on the DOM according to .divId and .cssClass properties
+// of each character object in the provided array.
+function printCharAry(spaceId, ary) {
+	jQuery.each(ary, function(i){
+		$(spaceId).append('<div id="' + ary[i].divId + 
+			'" class="' + ary[i].cssClass + '"></div>');
 	});
+}
+
+// populates one character div's inside a given space on the DOM according to .divId and .cssClass properties
+// of the character
+function printOneChar(spaceId, obj) {
+		$(spaceId).append('<div id="' + obj.divId + 
+				'" class="' + obj.cssClass + '"></div>');
+}
+
+// clears a space on the DOM according to given space id's
+function clearSpace(spaceId) {
+	$(spaceId).html("");
 }
 
 // Uses divId argument to get the correct player object from the allChars array according to allChars[i].name, 
@@ -142,7 +158,7 @@ function getEnemyCharIds (playerDivId) {
 	var enemyAry = [];
 	// loop pushes each id not equal to the playerDivId into enemyCharIdAry, 
 	// thus determining the div id's of the enemies
-	$(".characters-div[id!=" + playerDivId + "]").each(function(){
+	$(".character[id!=" + playerDivId + "]").each(function(){
 		var enemyId = $(this).attr("id");
 		enemyAry.push(enemyId);
 	});
@@ -170,14 +186,14 @@ $(document).ready(function(){
 		// Declares local variables
 		var selectedCharId = ""; // selectedCharId = the id of the clicked chararacter div
 		var selectedCharObj; // selected character object with all its properties
-		var enemyCharIdAry = []; // enemyCharIdAry is an array which consists of each .characters-div id not clicked
+		var enemyCharIdAry = []; // enemyCharIdAry is an array which consists of each .character id not clicked
 		var enemyCharObjAry = []; // an array of objects which will become the list of enemies
 
 		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
-		populateCharDivs();
+		printCharAry("#charSelectSpace", allChars);
 
 		// Activates click event listener
-		$(".characters-div").on("click", function(){
+		$(".character").on("click", function(){
 			
 			// sets selectedCharId equal to the id of the .character-div clicked
 			selectedCharId = $(this).attr("id"); 
@@ -192,23 +208,44 @@ $(document).ready(function(){
 			enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);	
 
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
-			$("div.characters-div").off("click"); // removes click event listener for all characters div's.
+			// $("div.character").off("click"); // removes click event listener for all characters div's.
 		});
 	}
 
 	function gameOn(player, enemyAry){
+		
+		// console logs
 		console.log("Player is:", player);
 		jQuery.each(enemyAry, function(i){
 			console.log("Enemy " + i + " is " + enemyAry[i].name);
 		});
 
+		// Add ".player" and ".enemy" CSS classes for styling
+		player.cssClass += " player";
+
+		jQuery.each(enemyAry, function(i){
+			enemyAry[i].cssClass += " enemy";
+		});
+
 		// Move div's from #charSelectSpace to #yourCharSpace and #enemiesSpace
 
-		// Add ".player" and ".enemy" CSS classes for styling
+		// Clears #charSelectSpace
+		clearSpace("#charSelectSpace");
+		printOneChar("#yourCharSpace", player);
+		printCharAry("#enemiesSpace", enemyAry);
 
 		// Activates event listener for selecting enemy
+		$(".enemy").on("click", function(){
+			
+			// test code
+			var selectedEnemy = $(this).attr('id');
 
-	}
+			console.log("Selected Enemy:", selectedEnemy);
+
+
+			$("div.enemy").off("click"); // removes click event listener for all enemy div's.
+		});
+	} // end gameOn() function
 
 	startScreen();
 }); // end Document Ready
