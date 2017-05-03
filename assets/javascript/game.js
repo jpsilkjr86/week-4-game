@@ -143,6 +143,11 @@ function clearSpace(spaceId) {
 	$(spaceId).html("");
 }
 
+// clears a div by id
+function clearDivId(divId) {
+	$(divId).html("");
+}
+
 // Uses divId argument to get the correct player object from the allChars array according to allChars[i].name, 
 // returns the matching object element.		
 function getPlayerObj (divId) {
@@ -183,29 +188,27 @@ function getEnemyCharObjs (idAry) {
 $(document).ready(function(){
 
 	function startScreen(){
-		// Declares local variables
-		var selectedCharId = ""; // selectedCharId = the id of the clicked chararacter div
-		var selectedCharObj; // selected character object with all its properties
-		var enemyCharIdAry = []; // enemyCharIdAry is an array which consists of each .character id not clicked
-		var enemyCharObjAry = []; // an array of objects which will become the list of enemies
-
+		
 		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
 		printCharAry("#charSelectSpace", allChars);
 
 		// Activates click event listener
 		$(".character").on("click", function(){
 			
-			// sets selectedCharId equal to the id of the .character-div clicked
-			selectedCharId = $(this).attr("id"); 
+			// sets selectedCharId equal to the id of the clicked .character div 
+			var selectedCharId = $(this).attr("id"); 
 			
-			// gets the selectedCharObj according to the div id clicked (i.e. the player object)
-			selectedCharObj = getPlayerObj(selectedCharId);
+			// gets the selected character object according to the div id clicked (i.e. the player object)
+			var selectedCharObj = getPlayerObj(selectedCharId);
 
 			// gets enemy character div id's
-			enemyCharIdAry = getEnemyCharIds(selectedCharId);
+			var enemyCharIdAry = getEnemyCharIds(selectedCharId);
 
-			// gets enemy character objects according to the div id's of the enemies
-			enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);	
+			// gets array of enemy character objects according to the div id's of the enemies
+			var enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);
+
+			// Clears #charSelectSpace
+			clearSpace("#charSelectSpace");	
 
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
 			// $("div.character").off("click"); // removes click event listener for all characters div's.
@@ -227,25 +230,35 @@ $(document).ready(function(){
 			enemyAry[i].cssClass += " enemy";
 		});
 
-		// Move div's from #charSelectSpace to #yourCharSpace and #enemiesSpace
-
-		// Clears #charSelectSpace
-		clearSpace("#charSelectSpace");
+		// Prints character div's to #yourCharSpace and #enemiesSpace
 		printOneChar("#yourCharSpace", player);
 		printCharAry("#enemiesSpace", enemyAry);
+		enemySelect();
 
-		// Activates event listener for selecting enemy
-		$(".enemy").on("click", function(){
-			
-			// test code
-			var selectedEnemy = $(this).attr('id');
+		function enemySelect() {
+			// Activates event listener for selecting enemy
+			$(".enemy").on("click", function(){
+				
+				// test code
+				var selectedEnemyId = $(this).attr('id');
 
-			console.log("Selected Enemy:", selectedEnemy);
+				console.log("Selected Enemy:", selectedEnemyId);
 
+				clearDivId("#" + selectedEnemyId);
 
-			$("div.enemy").off("click"); // removes click event listener for all enemy div's.
-		});
+				fightMode(selectedEnemyId);
+
+				$("div.enemy").off("click"); // removes click event listener for all enemy div's.
+			});
+		}
+		
+		function fightMode(defenderId) {
+			console.log("You are fighting", defenderId);
+			// need to change id to object so we don't lose track?
+		}
+
 	} // end gameOn() function
+
 
 	startScreen();
 }); // end Document Ready
