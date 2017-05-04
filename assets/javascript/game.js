@@ -245,6 +245,8 @@ function removeBtn(btnId) {
 
 $(document).ready(function(){
 
+	startScreen(); // initial function call to start the game!
+
 	function startScreen(){
 		
 		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
@@ -267,7 +269,7 @@ $(document).ready(function(){
 
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
 		});
-	}
+	} // end start screen function
 
 	function gameOn(player, enemyAry){
 		
@@ -285,7 +287,7 @@ $(document).ready(function(){
 			enemyAry[i].setInitialStats("enemy");
 		});
 
-		// print stats
+		// prints stats
 		player.printStats();
 		jQuery.each(enemyAry, function(i){
 			enemyAry[i].printStats();
@@ -317,7 +319,7 @@ $(document).ready(function(){
 					$("div.enemy").off("click"); // removes click event listener for all enemy div's.
 				});
 			}
-		}
+		} // end enemySelect() function
 		
 		function fightMode(defIndex) {
 			
@@ -357,31 +359,25 @@ $(document).ready(function(){
 					// removes defeated enemy from enemyAry
 					enemyAry.splice(defIndex, 1);
 
-					// console logs player and remaining enemies
+					// prints stats
 					player.printStats();
 					jQuery.each(enemyAry, function(i){
 						enemyAry[i].printStats();
 					});
 
-					// pass ball back to enemySelect
+					// passes ball back to enemySelect
 					enemySelect();
 				}
 
-			});
+			}); // end attackbtn event listener
 			
-		}
+		} // end fightMode() function
 
 	} // end gameOn() function
 
-
-	startScreen();
 }); // end Document Ready
 
 	// might not be necessary
 	// var startScreenState = true;
 	// var gameOnState = false;
 	// var gameOverState = false;
-
-
-
-
