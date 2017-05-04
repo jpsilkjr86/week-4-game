@@ -287,7 +287,7 @@ $(document).ready(function(){
 			enemyAry[i].setInitialStats("enemy");
 		});
 
-		// prints stats
+		// prints stats for enemy and players
 		player.printStats();
 		jQuery.each(enemyAry, function(i){
 			enemyAry[i].printStats();
@@ -330,7 +330,7 @@ $(document).ready(function(){
 			
 			addBtn(attackButton, "#defenderSpace");
 
-			moveCharTo (def, "#defenderSpace");
+			moveCharTo(def, "#defenderSpace");
 			// printOneChar("#defenderSpace", enemyAry[defIndex]);
 
 			$("#attackbtn").on("click", function(){
@@ -368,16 +368,7 @@ $(document).ready(function(){
 					// passes ball back to enemySelect
 					enemySelect();
 				}
-
-			}); // end attackbtn event listener
-			
+			}); // end attackbtn event listener			
 		} // end fightMode() function
-
 	} // end gameOn() function
-
 }); // end Document Ready
-
-	// might not be necessary
-	// var startScreenState = true;
-	// var gameOnState = false;
-	// var gameOverState = false;
