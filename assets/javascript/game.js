@@ -95,11 +95,32 @@ function charObj (name, divId, cssClass, // these 3 help the program identify & 
 	this.apIncrAsPlayer = apIncrAsPlayer; // attack power increase amount if character is selected as player
 }
 
-// add method to charObj called attack() which takes enemyHP argument
+// adds method to objects of charObj type called attack() which takes enemyHP argument
 charObj.prototype.attack = function(defender) {
 	defender.healthPoints -= this.attackPower;  
 	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
 	return defender;
+}
+
+// adds method to objects of charObj type called setInitialStats() which sets stats according to whether the 
+// character is a player or an enemy.
+charObj.prototype.setInitialStats = function(str) {
+	if (str === "player") {
+		this.name = "Player " + this.name; // adds the title "Player" before the character's name.
+		this.attackPower = this.apAsPlayer;
+		this.apIncrease = this.apIncrAsPlayer;
+	}
+
+	if (str === "enemy") {
+		this.name = "Enemy " + this.name;
+		this.attackPower = this.apAsEnemy;
+		this.apIncrease = 0; // increase amount is always zero for enemy characters.
+	}
+}
+
+charObj.prototype.printStats = function() {
+	console.log(this.name, "HP:", this.healthPoints, 
+		"AP:", this.attackPower, "Incr:", this.apIncrease);
 }
 
 // Global object declarations, as new instances of each object type. These are essentially a library of 
@@ -124,33 +145,35 @@ allChars.push(greenChar);
 
 var attackButton = '<button type="button" id="attackbtn" class="btn btn-danger">Attack!</button><br/>';
 
+
 // GLOBAL METHOD DECLARATIONS
 
 // populates character div's inside a given space on the DOM according to .divId and .cssClass properties
 // of each character object in the provided array.
-function printCharAry(spaceId, ary) {
+function printCharMenu(spaceId, ary) {
 	jQuery.each(ary, function(i){
 		$(spaceId).append('<div id="' + ary[i].divId + 
 			'" class="' + ary[i].cssClass + '"></div>');
 	});
 }
 
-// populates one character div's inside a given space on the DOM according to .divId and .cssClass properties
-// of the character
-function printOneChar(spaceId, obj) {
-		$(spaceId).append('<div id="' + obj.divId + 
-				'" class="' + obj.cssClass + '"></div>');
+// clears a character according to its divId
+function clearChar(char) {
+	$("#" + char.divId).remove();
 }
 
-// clears a space on the DOM according to given space id's
-function clearSpace(spaceId) {
-	$(spaceId).html("");
+// moves character object's div to a new space on the DOM
+function moveCharTo(char, destination) {
+	$("#" + char.divId).remove(); // removes div from current location, if any on screen
+	$(destination).append('<div id="' + char.divId + '" class="' + char.cssClass + '"></div>');
 }
 
-// clears a div by id
-function clearDivId(divId) {
-	console.log("divId:",divId);
-	$(divId).remove();
+// moves array of object div's to a new space on the DOM
+function moveCharAryTo(ary, destination) {
+	jQuery.each(ary, function(i){
+		$("#" + ary[i].divId).remove(); // removes div from current location, if any on screen
+		$(destination).append('<div id="' + ary[i].divId + '" class="' + ary[i].cssClass + '"></div>');
+	});
 }
 
 // Uses divId argument to get the correct player object from the allChars array according to allChars[i].divId, 
@@ -209,8 +232,8 @@ function getIndexByDivId (id, ary) {
 	return index;
 }
 
-function addBtn(space, btnName) {
-	$(space).append(btnName);
+function addBtn(btnName, spaceId) {
+	$(spaceId).append(btnName);
 }
 
 function removeBtn(btnId) {
@@ -225,7 +248,7 @@ $(document).ready(function(){
 	function startScreen(){
 		
 		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
-		printCharAry("#charSelectSpace", allChars);
+		printCharMenu("#charSelectSpace", allChars);
 
 		// Activates click event listener
 		$(".character").on("click", function(){
@@ -242,36 +265,30 @@ $(document).ready(function(){
 			// gets array of enemy character objects according to the div id's of the enemies
 			var enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);
 
-			// Clears #charSelectSpace
-			clearSpace("#charSelectSpace");	
-
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
-			// $("div.character").off("click"); // removes click event listener for all characters div's.
 		});
 	}
 
 	function gameOn(player, enemyAry){
 		
-		// console logs
-		console.log("Player is:", player);
-		jQuery.each(enemyAry, function(i){
-			console.log("Enemy " + i + " is " + enemyAry[i].name);
-		});
-
-		// Add ".player" and ".enemy" CSS classes for styling
+		// Adds ".player" and ".enemy" CSS classes for styling
 		player = addCssToObj(player, "player");
 		enemyAry = addCssToObjAry(enemyAry, "enemy");
 		
+		// moves characters to designated spaces
+		moveCharTo(player, "#yourCharSpace");
+		moveCharAryTo(enemyAry, "#enemiesSpace");
 
-		// Prints character div's to #yourCharSpace and #enemiesSpace
-		printOneChar("#yourCharSpace", player);
-		printCharAry("#enemiesSpace", enemyAry);
-
-		// sets initial attack power stats for player and enemy.
-		player.attackPower = player.apAsPlayer; 
-		player.apIncrease = player.apIncrAsPlayer;
+		// sets initial stats for player and enemy.
+		player.setInitialStats("player");
 		jQuery.each(enemyAry, function(i){
-			enemyAry[i].attackPower = enemyAry[i].apAsEnemy;
+			enemyAry[i].setInitialStats("enemy");
+		});
+
+		// print stats
+		player.printStats();
+		jQuery.each(enemyAry, function(i){
+			enemyAry[i].printStats();
 		});
 
 		// Calls enemySelect function
@@ -292,11 +309,7 @@ $(document).ready(function(){
 
 					console.log("Selected Enemy:", selectedEnemyId);
 
-					clearDivId("#" + selectedEnemyId);
-
 					var selectedEnemyIndex = getIndexByDivId(selectedEnemyId, enemyAry);
-
-					console.log(selectedEnemyIndex);
 
 					// calls fightMode, sends the index of the selected enemy
 					fightMode(selectedEnemyIndex);
@@ -313,9 +326,10 @@ $(document).ready(function(){
 			// defIndex stands for "index of defender", i.e. the index of the enemy the user is attacking
 			console.log("You, " + player.name + ", are fighting " + def.name);
 			
-			addBtn("#defenderSpace", attackButton);
+			addBtn(attackButton, "#defenderSpace");
 
-			printOneChar("#defenderSpace", enemyAry[defIndex]);
+			moveCharTo (def, "#defenderSpace");
+			// printOneChar("#defenderSpace", enemyAry[defIndex]);
 
 			$("#attackbtn").on("click", function(){
 
@@ -324,29 +338,29 @@ $(document).ready(function(){
 
 				player = def.attack(player); // defender attacks player, returns player with reduced HP.
 
-				console.log("Player", player.name, "stats: HP is", player.healthPoints, "AP is", player.attackPower);
-				console.log("Defender", def.name, "stats: HP is", def.healthPoints, "AP is", def.attackPower);
+				player.printStats();
+				def.printStats();
 
 				// if player dies
 				if (player.healthPoints <= 0) {
 					removeBtn("#attackbtn");
-					clearDivId("#" + player.divId);
+					clearChar(player);
 					console.log("Game Over. Your HP is now " + player.healthPoints + ". You Lose.");
 				}
 
 				// if player defeats the enemy
 				else if (def.healthPoints <= 0) {
 					removeBtn("#attackbtn");
-					clearDivId("#" + def.divId);
+					clearChar(def);
 					console.log("Enemy " + def.name + " has been defeated. Good job!");
 					
 					// removes defeated enemy from enemyAry
 					enemyAry.splice(defIndex, 1);
 
 					// console logs player and remaining enemies
-					console.log("Player is:", player);
+					player.printStats();
 					jQuery.each(enemyAry, function(i){
-						console.log("Enemy " + i + " is " + enemyAry[i].name);
+						enemyAry[i].printStats();
 					});
 
 					// pass ball back to enemySelect
@@ -367,62 +381,6 @@ $(document).ready(function(){
 	// var startScreenState = true;
 	// var gameOnState = false;
 	// var gameOverState = false;
-
-
-	/*
-	// events for error checking
-	$(document).keypress(function(e){
-		// press q any time to get character stats
-		if(e.key === 'q'){
-			console.log("redPlayer HP:", redPlayer.healthPoints, 
-				"redPlayer AP:", redPlayer.attackPower, "redPlayer AP Increase:", redPlayer.apIncrease);
-			console.log("redEnemy HP:", redEnemy.healthPoints, "redEnemy AP:", redEnemy.attackPower);
-			console.log("bluePlayer HP:", bluePlayer.healthPoints, 
-				"bluePlayer AP:", bluePlayer.attackPower, "bluePlayer AP Increase:", bluePlayer.apIncrease);
-			console.log("blueEnemy HP:", blueEnemy.healthPoints, "blueEnemy AP:", blueEnemy.attackPower);
-			console.log("yellowPlayer HP:", yellowPlayer.healthPoints, 
-				"yellowPlayer AP:", yellowPlayer.attackPower, "yellowPlayer AP Increase:", yellowPlayer.apIncrease);
-			console.log("yellowEnemy HP:", yellowEnemy.healthPoints, "yellowEnemy AP:", yellowEnemy.attackPower);
-			console.log("greenPlayer HP:", greenPlayer.healthPoints, 
-				"greenPlayer AP:", greenPlayer.attackPower, "greenPlayer AP Increase:", greenPlayer.apIncrease);
-			console.log("greenEnemy HP:", greenEnemy.healthPoints, "greenEnemy AP:", greenEnemy.attackPower);
-		}
-
-		if(e.key ==='r'){
-			redPlayer.healthPoints = blueEnemy.enemyAttack(redPlayer.healthPoints);
-			blueEnemy.healthPoints = redPlayer.playerAttack(blueEnemy.healthPoints);
-			console.log("blue enemy attack red player. red player attacks blue enemy");
-			console.log("redPlayer HP:", redPlayer.healthPoints, 
-				"redPlayer AP:", redPlayer.attackPower, "redPlayer AP Increase:", redPlayer.apIncrease);
-			console.log("blueEnemy HP:", blueEnemy.healthPoints, "blueEnemy AP:", blueEnemy.attackPower);
-		}
-
-		if(e.key ==='t'){
-			yellowPlayer.healthPoints = greenEnemy.enemyAttack(yellowPlayer.healthPoints);
-			greenEnemy.healthPoints = yellowPlayer.playerAttack(greenEnemy.healthPoints);
-			console.log("green enemy attack yellow player. yellow player attacks green enemy");
-			console.log("yellowPlayer HP:", yellowPlayer.healthPoints, 
-				"yellowPlayer AP:", yellowPlayer.attackPower, "yellowPlayer AP Increase:", yellowPlayer.apIncrease);
-			console.log("greenEnemy HP:", greenEnemy.healthPoints, "greenEnemy AP:", greenEnemy.attackPower);
-		}
-
-		if(e.key ==='y'){
-			bluePlayer.healthPoints = yellowEnemy.enemyAttack(bluePlayer.healthPoints);
-			yellowEnemy.healthPoints = bluePlayer.playerAttack(yellowEnemy.healthPoints);
-			console.log("yellow enemy attack blue player. blue player attacks yellow enemy");
-			console.log("bluePlayer HP:", bluePlayer.healthPoints, 
-				"bluePlayer AP:", bluePlayer.attackPower, "bluePlayer AP Increase:", bluePlayer.apIncrease);
-			console.log("yellowEnemy HP:", yellowEnemy.healthPoints, "yellowEnemy AP:", yellowEnemy.attackPower);
-		}
-		if(e.key ==='u'){
-			greenPlayer.healthPoints = redEnemy.enemyAttack(greenPlayer.healthPoints);
-			redEnemy.healthPoints = greenPlayer.playerAttack(redEnemy.healthPoints);
-			console.log("red enemy attack green player. green player attacks red enemy");
-			console.log("greenPlayer HP:", greenPlayer.healthPoints, 
-				"greenPlayer AP:", greenPlayer.attackPower, "greenPlayer AP Increase:", greenPlayer.apIncrease);
-			console.log("redEnemy HP:", redEnemy.healthPoints, "redEnemy AP:", redEnemy.attackPower);
-		}
-	});  */
 
 
 
