@@ -79,6 +79,7 @@ PSEUDO-CODE:
 
 */
 
+// ********************************************* GLOBAL OBJECTS *********************************************
 // object constructor for all characters
 function charObj (name, divId, cssClass, // these 3 help the program identify & bind the objects to the DOM
 	healthPoints, attackPower, apIncrease, // these 3 are base stats. AP and apIncrease are 0 before char is selected
@@ -141,12 +142,12 @@ allChars.push(yellowChar);
 allChars.push(greenChar);
 
 
-// GLOBAL VARIABLES
+// ******************************************* GLOBAL VARIABLES *******************************************
 
 var attackButton = '<button type="button" id="attackbtn" class="btn btn-danger">Attack!</button><br/>';
 
 
-// GLOBAL METHOD DECLARATIONS
+// ************************************** GLOBAL METHOD DECLARATIONS **************************************
 
 // populates character div's inside a given space on the DOM according to .divId and .cssClass properties
 // of each character object in the provided array.
@@ -241,7 +242,7 @@ function removeBtn(btnId) {
 }
 	
 
-// MAIN GAME FUNCTIONS
+// ***************************************** MAIN GAME FUNCTIONS *****************************************
 
 $(document).ready(function(){
 
