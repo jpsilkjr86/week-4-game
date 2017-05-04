@@ -96,11 +96,13 @@ function charObj (name, domId, domClass, // these 3 help the program identify & 
 	this.apIncrAsPlayer = apIncrAsPlayer; // attack power increase amount if character is selected as player
 }
 
-// adds method to objects of charObj type called attack() which takes enemyHP argument
-charObj.prototype.attack = function(defender) {
-	defender.healthPoints -= this.attackPower;  
+// adds method to objects of charObj type called attack() which takes the opponent's object argument.
+charObj.prototype.attack = function(opponent) {
+	opponent.healthPoints -= this.attackPower;  
+	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
+		this.attackPower + " points of damage on " + opponent.name + ".<br/>");
 	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
-	return defender;
+	return opponent;
 }
 
 // adds method to objects of charObj type called setInitialStats() which sets stats according to whether the 
@@ -188,6 +190,7 @@ function getPlayerObj (argId) {
 	return gotObj;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
 }
 
+// function takes in the DOM-id of the player and, by deduction, obtains and returns an array of enemy id's
 function getEnemyCharIds (playerDomId) {
 	var enemyAry = [];
 	// loop pushes each id not equal to the playerDomId into enemyCharIdAry, 
@@ -199,6 +202,8 @@ function getEnemyCharIds (playerDomId) {
 	return enemyAry;
 }
 
+// function matches enemy objects by searching for their matching .domId properties. 
+// Returns array of objects.
 function getEnemyCharObjs (idAry) {
 	var objAry = [];
 	// checks each element of idAry[k] + "Enemy" against .domId properties of each element of allChars[j] array
@@ -212,11 +217,13 @@ function getEnemyCharObjs (idAry) {
 	return objAry;
 }
 
+// Adds a DOM class to an object argument and returns it.
 function addClassToObj (obj, className) {
 	obj.domClass += (" " + className);
 	return obj;
 }
 
+// Adds a DOM class to each object element of an array and returns the array.
 function addClassToObjAry (ary, className) {
 	jQuery.each(ary, function(i){
 		ary[i].domClass += (" " + className);
@@ -224,6 +231,7 @@ function addClassToObjAry (ary, className) {
 	return ary;
 }
 
+// finds and returns the array index of an object according to the value of its .domId property
 function getIndexByDomId (id, ary) {
 	var index;
 	jQuery.each(ary, function(j){
@@ -233,12 +241,29 @@ function getIndexByDomId (id, ary) {
 	return index;
 }
 
+// adds a designated button. See button variables above for list of available buttons.
 function addBtn(btnName, spaceId) {
 	$(spaceId).append(btnName);
 }
 
+// removes a button according to its id on the DOM
 function removeBtn(btnId) {
 	$(btnId).remove();
+}
+
+// prints instructions to #instructions-msg on DOM
+function printMessage(msg) {
+	$("#instructions-msg").html(msg);
+}
+
+// prints a section header on the DOM
+function printSectionHeader (loc, txt) {
+	$(loc).html(txt);
+}
+
+// clears the html for a given text ID on the DOM
+function removeText (txtId) {
+	$(txtId).html("");
 }
 	
 
@@ -250,8 +275,10 @@ $(document).ready(function(){
 
 	function startScreen(){
 		
-		// Populates the charSelectSpace with the menu of character div's upon startScreen() function call
-		printCharMenu("#charSelectSpace", allChars);
+		// Populates the charselect-space with the menu of character div's upon startScreen() function call
+		printMessage("Select a character!");
+		printSectionHeader("#charselect-header", "Characters:");
+		printCharMenu("#charselect-space", allChars);
 
 		// Activates click event listener
 		$(".character").on("click", function(){
@@ -268,6 +295,8 @@ $(document).ready(function(){
 			// gets array of enemy character objects according to the div id's of the enemies
 			var enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);
 
+			removeText("#charselect-header");
+
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
 		});
 	} // end start screen function
@@ -275,13 +304,18 @@ $(document).ready(function(){
 	// function gameOn receives objects "player" and "enemyAry" from startScreen as arguments
 	function gameOn(player, enemyAry){
 		
+		// prints section headers and instructions on DOM
+		printMessage("Choose an enemy to fight!");
+		printSectionHeader("#yourchar-header", "Your Character:");
+		printSectionHeader("#enemies-header", "Your Enemies:");
+
 		// Adds ".player" / ".enemy" classes for CSS styling & for event listeners to work later on.
 		player = addClassToObj(player, "player");
 		enemyAry = addClassToObjAry(enemyAry, "enemy");
 		
 		// moves characters to designated spaces
-		moveCharTo(player, "#yourCharSpace");
-		moveCharAryTo(enemyAry, "#enemiesSpace");
+		moveCharTo(player, "#yourchar-space");
+		moveCharAryTo(enemyAry, "#enemies-space");
 
 		// sets initial stats for player and enemy.
 		player.setInitialStats("player");
@@ -302,7 +336,7 @@ $(document).ready(function(){
 			
 			// If there are no more enemies left
 			if (enemyAry.length === 0) {
-				console.log("Great job! All enemies have been defeated. You beat the game!")
+				printMessage("Great job! All enemies have been defeated. You beat the game!");
 			}
 
 			else {
@@ -311,8 +345,6 @@ $(document).ready(function(){
 					
 					// test code
 					var selectedEnemyId = $(this).attr('id');
-
-					console.log("Selected Enemy:", selectedEnemyId);
 
 					var selectedEnemyIndex = getIndexByDomId(selectedEnemyId, enemyAry);
 
@@ -328,15 +360,20 @@ $(document).ready(function(){
 			
 			var def = enemyAry[defIndex]; // def is the defender, i.e. the enemy selected from enemySelect()
 
+			// prints instructions and section heading on the DOM
+			printMessage("Press the Attack! button when you're ready to fight!");
+			printSectionHeader("#defender-header", "Defender:");
+
 			// defIndex stands for "index of defender", i.e. the index of the enemy the user is attacking
 			console.log("You, " + player.name + ", are fighting " + def.name);
 			
-			addBtn(attackButton, "#defenderSpace");
+			addBtn(attackButton, "#defender-space");
 
-			moveCharTo(def, "#defenderSpace");
-			// printOneChar("#defenderSpace", enemyAry[defIndex]);
+			moveCharTo(def, "#defender-space");
 
 			$("#attackbtn").on("click", function(){
+				// clears the fight-stats message board in case there is any text there
+				removeText("#fight-stats");
 
 				// Here are the attack methods:
 				def = player.attack(def); // player attacks def, returns def with reduced HP.
@@ -350,14 +387,16 @@ $(document).ready(function(){
 				if (player.healthPoints <= 0) {
 					removeBtn("#attackbtn");
 					clearChar(player);
-					console.log("Game Over. Your HP is now " + player.healthPoints + ". You Lose.");
+					removeText("#yourchar-header");
+					printMessage("Game over. Your HP is now " + player.healthPoints + ". You Lose.");
 				}
 
 				// if player defeats the enemy
 				else if (def.healthPoints <= 0) {
 					removeBtn("#attackbtn");
 					clearChar(def);
-					console.log("Enemy " + def.name + " has been defeated. Good job!");
+					removeText("#defender-header");
+					printMessage(def.name + " has been defeated. Good job!");
 					
 					// removes defeated enemy from enemyAry
 					enemyAry.splice(defIndex, 1);

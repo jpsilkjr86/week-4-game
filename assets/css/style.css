@@ -13,6 +13,13 @@
 .player:hover
 { opacity: 1;}
 
+div#charselect-space
+{
+	margin: auto;
+	width: 480px; 
+	overflow: auto;
+}
+
 div#red
 {
 	width: 100px;
