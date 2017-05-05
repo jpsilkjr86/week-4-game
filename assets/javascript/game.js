@@ -151,7 +151,8 @@ allChars.push(greenChar);
 
 // ******************************************* GLOBAL VARIABLES *******************************************
 
-var attackButton = '<button type="button" id="attackbtn" class="btn btn-danger">Attack!</button><br/>';
+var attackButton = '<div id="attackbtn-div"><button type="button" id="attackbtn" class="btn btn-danger">Attack!</button></div>';
+var playAgainButton = '<div id="playagainbtn-div"><br/><button type="button" id="playagainbtn" class="btn btn-primary btn-lg">Click here to play again!</button></div>';
 
 
 // ************************************** GLOBAL METHOD DECLARATIONS **************************************
@@ -204,22 +205,22 @@ function addBtn(btnName, spaceId) {
 
 // removes a button according to its id on the DOM
 function removeBtn(btnId) {
-	$(btnId).remove();
+	$(btnId + "-div").remove();
 }
 
 // prints instructions to #instructions-msg on DOM
 function printMessage(msg) {
-	$("#instructions-msg").html(msg);
+	$("#instructions-msg").text(msg);
 }
 
 // prints a section header on the DOM
 function printSectionHeader (loc, txt) {
-	$(loc).html(txt);
+	$(loc).text(txt);
 }
 
 // clears the html for a given text ID on the DOM
 function clearText (txtId) {
-	$(txtId).html("");
+	$(txtId).empty();
 }
 	
 
@@ -315,7 +316,7 @@ $(document).ready(function(){
 			
 			// If there are no more enemies left
 			if (enemyAry.length === 0) {
-				printMessage("Great job! All enemies have been defeated. You beat the game!");
+				gameOver(true);
 			}
 
 			else {
@@ -373,7 +374,7 @@ $(document).ready(function(){
 					$("#attackbtn").remove(); // removes attack button
 					player.removeChar(); // removes the character from the DOM and bound data
 					clearText("#yourchar-header"); 
-					printMessage("Game over. Your HP is now " + player.healthPoints + ". You Lose.");
+					gameOver(false);
 				}
 
 				// if player defeats the enemy
@@ -392,7 +393,35 @@ $(document).ready(function(){
 				}
 			}); // end attackbtn event listener			
 		} // end fightMode() function
+
+		// Controls the gameOver display and restart functionality
+		function gameOver(youWon) {
+			if (youWon) 
+			{ printMessage("Great job! All enemies have been defeated. You beat the game!"); }
+			else 
+			{ printMessage("Game over. You Lose."); }
+
+			addBtn(playAgainButton, "#instructions-msg");
+
+			$("#playagainbtn").on("click", function(){
+				// remove characters depending on who's left 
+				if (youWon) 
+				{ player.removeChar(); }
+				else { 
+					jQuery.each(enemyAry, function(i){
+						enemyAry[i].removeChar();
+					});
+				}
+				clearText("h2");
+				clearText("h4");
+				removeBtn("#playagainbtn");
+				startScreen();
+			});
+		}
+
 	} // end gameOn() function
+
+		
 
 
 	// checks stats in console log for error checking purposes
