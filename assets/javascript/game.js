@@ -270,9 +270,6 @@ $(document).ready(function(){
 		printMessage("Select a character!");
 		printSectionHeader("#charselect-header", "Characters:");
 		printCharAry("#charselect-space", allChars);
-		// jQuery.each(allChars, function(i) {
-		// 	printChar("#charselect-space", allChars[i]);
-		// });
 
 		// Activates click event listener
 		$(".character").on("click", function(){
@@ -299,13 +296,14 @@ $(document).ready(function(){
 				enemyCharCopyAry.push(enemyCharCopy);
 			});
 
-			// remove all characters from the menu and their attached data
+			// remove all global characters (not the copies) from the menu and their attached data
 			clearText("#charselect-header");
 			jQuery.each(allChars, function(i){
 				$("#" + allChars[i].domId).remove();
 			});
 
-			// Calls game function, sends player and enemy object references
+			// Calls game function, sends copied objects of player and enemy characters (no DOM
+			// element is binding them yet)
 			gameOn(selectedCharCopy, enemyCharCopyAry); 
 		});
 	} // end start screen function
@@ -322,25 +320,27 @@ $(document).ready(function(){
 		player = addClassToObj(player, "player");
 		enemyAry = addClassToObjAry(enemyAry, "enemy");
 		
+		// moves characters to designated spaces and assigns char object data to their DOM elements
+		printChar("#yourchar-space", player);
+		printCharAry("#enemies-space", enemyAry);
+
+		// reassigns player and enemyAry[] elements so that they reference their 
+		// DOM element data directly. This binds the character stats to the DOM element
+		// so that DOM elements retain all character data no matter where they move to
+		// as the game progresses.
+		player = $("#" + player.domId).data();
+		jQuery.each(enemyAry, function(i) {
+			enemyAry[i] = $("#" + enemyAry[i].domId).data();
+		});
+
 		// sets initial stats for player and enemy.
 		player.setInitialStats("player");
 		jQuery.each(enemyAry, function(i){
 			enemyAry[i].setInitialStats("enemy");
 		});
-		
-		// moves characters to designated spaces and assigns data to the DOM
-		printChar("#yourchar-space", player);
-		// printCharAry("#enemies-space", enemyAry);
-		jQuery.each(enemyAry, function(i) {
-			printChar("#enemies-space", enemyAry[i]);
-		});
-
 
 		// prints stats for the player
 		player.printStats();
-		// jQuery.each(enemyAry, function(i){
-		// 	enemyAry[i].printStats();
-		// });
 
 		// Calls enemySelect function
 		enemySelect();
@@ -355,29 +355,24 @@ $(document).ready(function(){
 			else {
 				// Activates event listener for selecting enemy
 				$(".enemy").on("click", function(){
-					// get reference to selected enemy's object data
-					var selectedEnemyObj = $(this).data();
-					// selectedEnemyObj.printStats();
+					// gets reference to selected enemy's object data
+					var selectedEnemy = $(this).data();
 
-
-					// test code
-					// var selectedEnemyId = $(this).attr('id');
-					// var selectedEnemyIndex = getIndexByDomId(selectedEnemyId, enemyAry);
-
-					// calls fightMode, sends the index of the selected enemy
-					fightMode(selectedEnemyObj);
+					// calls fightMode, sends a reference to the enemy object
+					fightMode(selectedEnemy);
 
 					$("div.enemy").off("click"); // removes click event listener for all enemy div's.
 				});
 			}
 		} // end enemySelect() function
 		
+		// function fightMode receives "def" (defender enemy) as an argument, carries out fight code
 		function fightMode(def) {
 			// prints instructions and section heading on the DOM
 			printMessage("Press the Attack! button when you're ready to fight!");
 			printSectionHeader("#defender-header", "Defender:");
 
-			// print player and defender's stats
+			// prints player and defender's stats
 			clearText("#char-stats");
 			player.printStats();
 			def.printStats();
@@ -386,6 +381,7 @@ $(document).ready(function(){
 
 			moveCharTo(def, "#defender-space");
 
+			// when the attack button is clicked
 			$("#attackbtn").on("click", function(){
 				// clears the fight-stats message board in case there is any text there
 				clearText("#fight-stats");
@@ -397,8 +393,12 @@ $(document).ready(function(){
 				if (def.healthPoints > 0) {
 					// defender attacks player, returns player with reduced HP.
 					player = def.attack(player); 
+
+					// this condition ensures that the enemy doesn't somehow strike 
+					// back while already dead.
 				}
 
+				// updates both characters' stats
 				clearText("#char-stats");
 				player.printStats();
 				def.printStats();
@@ -406,8 +406,8 @@ $(document).ready(function(){
 				// if player dies
 				if (player.healthPoints <= 0) {
 					$("#attackbtn").remove(); // removes attack button
-					player.removeChar();
-					clearText("#yourchar-header"); // clears text
+					player.removeChar(); // removes the character from the DOM and bound data
+					clearText("#yourchar-header"); 
 					printMessage("Game over. Your HP is now " + player.healthPoints + ". You Lose.");
 				}
 
