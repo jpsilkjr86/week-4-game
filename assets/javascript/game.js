@@ -98,7 +98,7 @@ function charObj (name, domId, domClass, // these 3 help the program identify & 
 
 // adds method to objects of charObj type called attack() which takes the opponent's object argument.
 charObj.prototype.attack = function(opponent) {
-	opponent.healthPoints -= this.attackPower;  
+	opponent.healthPoints -= this.attackPower;
 	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
 		this.attackPower + " points of damage on " + opponent.name + ".<br/>");
 	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
@@ -112,12 +112,14 @@ charObj.prototype.setInitialStats = function(str) {
 		this.name = "Player " + this.name; // adds the title "Player" before the character's name.
 		this.attackPower = this.apAsPlayer;
 		this.apIncrease = this.apIncrAsPlayer;
+		console.log(this.name, this.attackPower);
 	}
 
 	if (str === "enemy") {
 		this.name = "Enemy " + this.name;
 		this.attackPower = this.apAsEnemy;
 		this.apIncrease = 0; // increase amount is always zero for enemy characters.
+		console.log(this.name, this.attackPower);
 	}
 }
 
@@ -128,16 +130,20 @@ charObj.prototype.printStats = function() {
 	$("#char-stats").append(charStats);
 }
 
+charObj.prototype.removeChar = function() {
+	$("#" + this.domId).remove();
+}
+
 // Global object declarations, as new instances of each object type. These are essentially a library of 
 // available players and objects, which will ultimately be determined when user chooses his/her player
 // character.
 
 var allChars = [];
 
-var redChar = new charObj("Red", "red", "character", 120, 0, 0, 20, 25, 15);
-var blueChar = new charObj("Blue", "blue", "character", 130, 0, 0, 15, 20, 10);
-var yellowChar = new charObj("Yellow", "yellow", "character", 150, 0, 0, 28, 30, 2);
-var greenChar = new charObj("Green", "green", "character", 80, 0, 0, 5, 20, 30);
+var redChar = new charObj("Red", "red", "character", 125, 0, 0, 20, 25, 10);
+var blueChar = new charObj("Blue", "blue", "character", 110, 0, 0, 10, 20, 15);
+var yellowChar = new charObj("Yellow", "yellow", "character", 150, 0, 0, 25, 30, 3);
+var greenChar = new charObj("Green", "green", "character", 80, 0, 0, 5, 15, 30);
 
 allChars.push(redChar);
 allChars.push(blueChar);
@@ -153,29 +159,37 @@ var attackButton = '<button type="button" id="attackbtn" class="btn btn-danger">
 // ************************************** GLOBAL METHOD DECLARATIONS **************************************
 
 // populates character div's inside a given space on the DOM according to .domId and .domClass properties
-// of each character object in the provided array.
-function printCharMenu(spaceId, ary) {
-	jQuery.each(ary, function(i){
-		$(spaceId).append('<div id="' + ary[i].domId + 
-			'" class="' + ary[i].domClass + '"></div>');
-	});
+// of the character object.
+function printChar(spaceId, char) {
+	// prints char in given space id on the DOM and assigns domId and domClass property values.
+	$(spaceId).append('<div id="' + char.domId + 
+		'" class="' + char.domClass + '"></div>');
+	// binds char object data to the element. data key is the same as the domId for that character.
+	$("#" + char.domId).data(char); 												 
 }
 
-// removes a character according to its domId
-function removeChar(char) {
-	$("#" + char.domId).remove();
+// populates character div's inside a given space on the DOM according to .domId and .domClass properties
+// of each character object in the provided array.
+function printCharAry(spaceId, ary) {
+	jQuery.each(ary, function(i){
+		// prints char in given space id on the DOM and assigns domId and domClass property values.
+		$(spaceId).append('<div id="' + ary[i].domId + 
+			'" class="' + ary[i].domClass + '"></div>');
+		// binds char object data to the element. data key is the same as the domId for that character.
+		$("#" + ary[i].domId).data(ary[i]); 
+	});													 
 }
 
 // moves character object's div to a new space on the DOM
 function moveCharTo(char, destination) {
-	$("#" + char.domId).remove(); // removes div from current location, if any on screen
+	$("#" + char.domId).detach(); // removes div from current location, if any on screen
 	$(destination).append('<div id="' + char.domId + '" class="' + char.domClass + '"></div>');
 }
 
 // moves array of object div's to a new space on the DOM
 function moveCharAryTo(ary, destination) {
 	jQuery.each(ary, function(i){
-		$("#" + ary[i].domId).remove(); // removes div from current location, if any on screen
+		$("#" + ary[i].domId).detach(); // removes div from current location, if any on screen
 		$(destination).append('<div id="' + ary[i].domId + '" class="' + ary[i].domClass + '"></div>');
 	});
 }
@@ -192,37 +206,6 @@ function getPlayerObj (argId) {
 		{ objDeepCopy = jQuery.extend(true, {}, allChars[i]); }	 			
 	});
 	return objDeepCopy;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
-}
-
-// function takes in the DOM-id of the player and, by deduction, obtains and returns an array of enemy id's
-function getEnemyCharIds (playerDomId) {
-	var enemyAry = [];
-	// loop pushes each id not equal to the playerDomId into enemyCharIdAry, 
-	// thus determining the div id's of the enemies
-	$(".character[id!=" + playerDomId + "]").each(function(){
-		var enemyId = $(this).attr("id");
-		enemyAry.push(enemyId);
-	});
-	return enemyAry;
-}
-
-// function matches enemy objects by searching for their matching .domId properties. 
-// Returns array of objects. For the same reasons as stated above in the comments for 
-// getPlayerObj, i decided to create a deep copy of each object so that i don't end up
-// changing the global object's properties, and they can be referenced again in the future.
-function getEnemyCharObjs (idAry) {
-	var objAry = [];
-	// checks each element of idAry[k] + "Enemy" against .domId properties of each element of allChars[j] array
-	// in order to populate the list of enemy objects, using two for-loops.
-	jQuery.each(allChars, function(j){
-		jQuery.each(idAry, function(k){
-			if (idAry[k] === allChars[j].domId) { 
-			 	var newObjDeepCopy = jQuery.extend(true, {}, allChars[j]);
-			 	objAry.push(newObjDeepCopy); 
-			}	
-		});							
-	});
-	return objAry;
 }
 
 // Adds a DOM class to an object argument and returns it.
@@ -286,26 +269,44 @@ $(document).ready(function(){
 		// Populates the charselect-space with the menu of character div's upon startScreen() function call
 		printMessage("Select a character!");
 		printSectionHeader("#charselect-header", "Characters:");
-		printCharMenu("#charselect-space", allChars);
+		printCharAry("#charselect-space", allChars);
+		// jQuery.each(allChars, function(i) {
+		// 	printChar("#charselect-space", allChars[i]);
+		// });
 
 		// Activates click event listener
 		$(".character").on("click", function(){
-			
-			// sets selectedCharId equal to the id of the clicked .character div 
-			var selectedCharId = $(this).attr("id"); 
-			
-			// gets the selected character object according to the div id clicked (i.e. the player object)
-			var selectedCharObj = getPlayerObj(selectedCharId);
 
-			// gets enemy character div id's by deduction
-			var enemyCharIdAry = getEnemyCharIds(selectedCharId);
+			// grabs the data of the selected element, which is equal to the character object.
+			var selectedCharObj = $(this).data();
 
-			// gets array of enemy character objects according to the div id's of the enemies
-			var enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);
+			// makes a deep copy of the selected char object so that the original global object's 
+			// data won't be changed during the game program.
+			var selectedCharCopy = jQuery.extend(true, {}, selectedCharObj);
 
+			// gets enemy character objects by deduction
+			var notPlayerId = ".character[id!=" + selectedCharObj.domId + "]";
+			var enemyCharObjAry = [];
+			$(notPlayerId).each(function(){
+				var enemyCharObj = $(this).data();
+				enemyCharObjAry.push(enemyCharObj);
+			});
+
+			// makes a deep copy of each enemy char object and pushes each one onto an array
+			var enemyCharCopyAry = [];
+			jQuery.each(enemyCharObjAry, function(i){
+				var enemyCharCopy = enemyCharObjAry[i];
+				enemyCharCopyAry.push(enemyCharCopy);
+			});
+
+			// remove all characters from the menu and their attached data
 			clearText("#charselect-header");
+			jQuery.each(allChars, function(i){
+				$("#" + allChars[i].domId).remove();
+			});
 
-			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
+			// Calls game function, sends player and enemy object references
+			gameOn(selectedCharCopy, enemyCharCopyAry); 
 		});
 	} // end start screen function
 
@@ -321,18 +322,25 @@ $(document).ready(function(){
 		player = addClassToObj(player, "player");
 		enemyAry = addClassToObjAry(enemyAry, "enemy");
 		
-		// moves characters to designated spaces
-		moveCharTo(player, "#yourchar-space");
-		moveCharAryTo(enemyAry, "#enemies-space");
-
 		// sets initial stats for player and enemy.
 		player.setInitialStats("player");
 		jQuery.each(enemyAry, function(i){
 			enemyAry[i].setInitialStats("enemy");
 		});
+		
+		// moves characters to designated spaces and assigns data to the DOM
+		printChar("#yourchar-space", player);
+		// printCharAry("#enemies-space", enemyAry);
+		jQuery.each(enemyAry, function(i) {
+			printChar("#enemies-space", enemyAry[i]);
+		});
+
 
 		// prints stats for the player
 		player.printStats();
+		// jQuery.each(enemyAry, function(i){
+		// 	enemyAry[i].printStats();
+		// });
 
 		// Calls enemySelect function
 		enemySelect();
@@ -347,24 +355,24 @@ $(document).ready(function(){
 			else {
 				// Activates event listener for selecting enemy
 				$(".enemy").on("click", function(){
-					
-					// test code
-					var selectedEnemyId = $(this).attr('id');
+					// get reference to selected enemy's object data
+					var selectedEnemyObj = $(this).data();
+					// selectedEnemyObj.printStats();
 
-					var selectedEnemyIndex = getIndexByDomId(selectedEnemyId, enemyAry);
+
+					// test code
+					// var selectedEnemyId = $(this).attr('id');
+					// var selectedEnemyIndex = getIndexByDomId(selectedEnemyId, enemyAry);
 
 					// calls fightMode, sends the index of the selected enemy
-					fightMode(selectedEnemyIndex);
+					fightMode(selectedEnemyObj);
 
 					$("div.enemy").off("click"); // removes click event listener for all enemy div's.
 				});
 			}
 		} // end enemySelect() function
 		
-		function fightMode(defIndex) {
-			
-			var def = enemyAry[defIndex]; // def is the defender, i.e. the enemy selected from enemySelect()
-
+		function fightMode(def) {
 			// prints instructions and section heading on the DOM
 			printMessage("Press the Attack! button when you're ready to fight!");
 			printSectionHeader("#defender-header", "Defender:");
@@ -373,9 +381,6 @@ $(document).ready(function(){
 			clearText("#char-stats");
 			player.printStats();
 			def.printStats();
-
-			// defIndex stands for "index of defender", i.e. the index of the enemy the user is attacking
-			console.log("You, " + player.name + ", are fighting " + def.name);
 			
 			addBtn(attackButton, "#defender-space");
 
@@ -400,20 +405,21 @@ $(document).ready(function(){
 
 				// if player dies
 				if (player.healthPoints <= 0) {
-					removeBtn("#attackbtn");
-					removeChar(player);
-					clearText("#yourchar-header");
+					$("#attackbtn").remove(); // removes attack button
+					player.removeChar();
+					clearText("#yourchar-header"); // clears text
 					printMessage("Game over. Your HP is now " + player.healthPoints + ". You Lose.");
 				}
 
 				// if player defeats the enemy
 				else if (def.healthPoints <= 0) {
 					removeBtn("#attackbtn");
-					removeChar(def);
+					def.removeChar();
 					clearText("#defender-header");
 					printMessage(def.name + " has been defeated. Good job!");
 					
 					// removes defeated enemy from enemyAry
+					var defIndex = jQuery.inArray(def, enemyAry);
 					enemyAry.splice(defIndex, 1);
 
 					// passes ball back to enemySelect
