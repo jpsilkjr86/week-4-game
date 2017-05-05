@@ -122,8 +122,10 @@ charObj.prototype.setInitialStats = function(str) {
 }
 
 charObj.prototype.printStats = function() {
-	console.log(this.name, "HP:", this.healthPoints, 
-		"AP:", this.attackPower, "Incr:", this.apIncrease);
+	var charStats = (this.name + "'s Stats:<br/>HP: " + this.healthPoints + 
+		"&nbsp;&nbsp;&nbsp;Attack Power: " + this.attackPower + 
+		"&nbsp;&nbsp;&nbsp;Attack Power Increase: " + this.apIncrease + "<br/>");
+	$("#char-stats").append(charStats);
 }
 
 // Global object declarations, as new instances of each object type. These are essentially a library of 
@@ -132,12 +134,11 @@ charObj.prototype.printStats = function() {
 
 var allChars = [];
 
-var redChar = new charObj("Red", "red", "character", 100, 0, 0, 10, 15, 5);
-var blueChar = new charObj("Blue", "blue", "character", 120, 0, 0, 8, 12, 7);
-var yellowChar = new charObj("Yellow", "yellow", "character", 140, 0, 0, 20, 40, 5);
-var greenChar = new charObj("Green", "green", "character", 60, 0, 0, 5, 10, 20);
+var redChar = new charObj("Red", "red", "character", 120, 0, 0, 20, 25, 15);
+var blueChar = new charObj("Blue", "blue", "character", 130, 0, 0, 15, 20, 10);
+var yellowChar = new charObj("Yellow", "yellow", "character", 150, 0, 0, 28, 30, 2);
+var greenChar = new charObj("Green", "green", "character", 80, 0, 0, 5, 20, 30);
 
-// push player objects into an array	// push enemy objects into an array
 allChars.push(redChar);
 allChars.push(blueChar);
 allChars.push(yellowChar);
@@ -289,7 +290,7 @@ $(document).ready(function(){
 			// gets the selected character object according to the div id clicked (i.e. the player object)
 			var selectedCharObj = getPlayerObj(selectedCharId);
 
-			// gets enemy character div id's
+			// gets enemy character div id's by deduction
 			var enemyCharIdAry = getEnemyCharIds(selectedCharId);
 
 			// gets array of enemy character objects according to the div id's of the enemies
@@ -323,11 +324,8 @@ $(document).ready(function(){
 			enemyAry[i].setInitialStats("enemy");
 		});
 
-		// prints stats for enemy and players
+		// prints stats for the player
 		player.printStats();
-		jQuery.each(enemyAry, function(i){
-			enemyAry[i].printStats();
-		});
 
 		// Calls enemySelect function
 		enemySelect();
@@ -364,6 +362,11 @@ $(document).ready(function(){
 			printMessage("Press the Attack! button when you're ready to fight!");
 			printSectionHeader("#defender-header", "Defender:");
 
+			// print player and defender's stats
+			removeText("#char-stats");
+			player.printStats();
+			def.printStats();
+
 			// defIndex stands for "index of defender", i.e. the index of the enemy the user is attacking
 			console.log("You, " + player.name + ", are fighting " + def.name);
 			
@@ -375,11 +378,16 @@ $(document).ready(function(){
 				// clears the fight-stats message board in case there is any text there
 				removeText("#fight-stats");
 
-				// Here are the attack methods:
-				def = player.attack(def); // player attacks def, returns def with reduced HP.
+				// player attacks def, returns def with reduced HP.
+				def = player.attack(def); 
+				
+				// if the defender is still alive
+				if (def.healthPoints > 0) {
+					// defender attacks player, returns player with reduced HP.
+					player = def.attack(player); 
+				}
 
-				player = def.attack(player); // defender attacks player, returns player with reduced HP.
-
+				removeText("#char-stats");
 				player.printStats();
 				def.printStats();
 
@@ -400,12 +408,6 @@ $(document).ready(function(){
 					
 					// removes defeated enemy from enemyAry
 					enemyAry.splice(defIndex, 1);
-
-					// prints stats
-					player.printStats();
-					jQuery.each(enemyAry, function(i){
-						enemyAry[i].printStats();
-					});
 
 					// passes ball back to enemySelect
 					enemySelect();
