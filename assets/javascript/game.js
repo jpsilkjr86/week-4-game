@@ -112,14 +112,12 @@ charObj.prototype.setInitialStats = function(str) {
 		this.name = "Player " + this.name; // adds the title "Player" before the character's name.
 		this.attackPower = this.apAsPlayer;
 		this.apIncrease = this.apIncrAsPlayer;
-		console.log(this.name, this.attackPower);
 	}
 
 	if (str === "enemy") {
 		this.name = "Enemy " + this.name;
 		this.attackPower = this.apAsEnemy;
 		this.apIncrease = 0; // increase amount is always zero for enemy characters.
-		console.log(this.name, this.attackPower);
 	}
 }
 
@@ -182,30 +180,7 @@ function printCharAry(spaceId, ary) {
 
 // moves character object's div to a new space on the DOM
 function moveCharTo(char, destination) {
-	$("#" + char.domId).detach(); // removes div from current location, if any on screen
-	$(destination).append('<div id="' + char.domId + '" class="' + char.domClass + '"></div>');
-}
-
-// moves array of object div's to a new space on the DOM
-function moveCharAryTo(ary, destination) {
-	jQuery.each(ary, function(i){
-		$("#" + ary[i].domId).detach(); // removes div from current location, if any on screen
-		$(destination).append('<div id="' + ary[i].domId + '" class="' + ary[i].domClass + '"></div>');
-	});
-}
-
-// Uses domId argument to get the correct player object from the allChars array according to allChars[i].domId, 
-// returns a *deep copy* of the matching object element. At first I just returned the original object, 
-// which up further research (and testing) I found that it was changing the original object's properties
-// in allChars. I decided to experiment with deep copying objects out of curiosity and also to allow 
-// the program to create duplicates that fight each other, if I so decide in the future with this game.
-function getPlayerObj (argId) {
-	var objDeepCopy;
-	jQuery.each(allChars, function(i){
-		if (argId === allChars[i].domId)
-		{ objDeepCopy = jQuery.extend(true, {}, allChars[i]); }	 			
-	});
-	return objDeepCopy;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
+	$("#" + char.domId).detach().appendTo(destination);
 }
 
 // Adds a DOM class to an object argument and returns it.
@@ -220,16 +195,6 @@ function addClassToObjAry (ary, className) {
 		ary[i].domClass += (" " + className);
 	});
 	return ary;
-}
-
-// finds and returns the array index of an object according to the value of its .domId property
-function getIndexByDomId (id, ary) {
-	var index;
-	jQuery.each(ary, function(j){
-		if (ary[j].domId === id)
-		{ index = j; }
-	});
-	return index;
 }
 
 // adds a designated button. See button variables above for list of available buttons.
@@ -296,7 +261,8 @@ $(document).ready(function(){
 				enemyCharCopyAry.push(enemyCharCopy);
 			});
 
-			// remove all global characters (not the copies) from the menu and their attached data
+			// removes text, character DOM elements and their object data (not 
+			// their copies) from the menu
 			clearText("#charselect-header");
 			jQuery.each(allChars, function(i){
 				$("#" + allChars[i].domId).remove();
@@ -320,7 +286,7 @@ $(document).ready(function(){
 		player = addClassToObj(player, "player");
 		enemyAry = addClassToObjAry(enemyAry, "enemy");
 		
-		// moves characters to designated spaces and assigns char object data to their DOM elements
+		// prints characters to designated spaces and assigns char object data to their DOM elements
 		printChar("#yourchar-space", player);
 		printCharAry("#enemies-space", enemyAry);
 
@@ -393,12 +359,11 @@ $(document).ready(function(){
 				if (def.healthPoints > 0) {
 					// defender attacks player, returns player with reduced HP.
 					player = def.attack(player); 
-
 					// this condition ensures that the enemy doesn't somehow strike 
 					// back while already dead.
 				}
 
-				// updates both characters' stats
+				// prints updated stats for both characters
 				clearText("#char-stats");
 				player.printStats();
 				def.printStats();
