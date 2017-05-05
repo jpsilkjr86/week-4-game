@@ -161,8 +161,8 @@ function printCharMenu(spaceId, ary) {
 	});
 }
 
-// clears a character according to its domId
-function clearChar(char) {
+// removes a character according to its domId
+function removeChar(char) {
 	$("#" + char.domId).remove();
 }
 
@@ -181,14 +181,17 @@ function moveCharAryTo(ary, destination) {
 }
 
 // Uses domId argument to get the correct player object from the allChars array according to allChars[i].domId, 
-// returns the matching object element.		
+// returns a *deep copy* of the matching object element. At first I just returned the original object, 
+// which up further research (and testing) I found that it was changing the original object's properties
+// in allChars. I decided to experiment with deep copying objects out of curiosity and also to allow 
+// the program to create duplicates that fight each other, if I so decide in the future with this game.
 function getPlayerObj (argId) {
-	var gotObj;
+	var objDeepCopy;
 	jQuery.each(allChars, function(i){
 		if (argId === allChars[i].domId)
-		{ gotObj = allChars[i]; }				
+		{ objDeepCopy = jQuery.extend(true, {}, allChars[i]); }	 			
 	});
-	return gotObj;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
+	return objDeepCopy;  // jQuery wouldn't let me put the return inside the for-loop! Has to do with semicolon i think
 }
 
 // function takes in the DOM-id of the player and, by deduction, obtains and returns an array of enemy id's
@@ -204,15 +207,19 @@ function getEnemyCharIds (playerDomId) {
 }
 
 // function matches enemy objects by searching for their matching .domId properties. 
-// Returns array of objects.
+// Returns array of objects. For the same reasons as stated above in the comments for 
+// getPlayerObj, i decided to create a deep copy of each object so that i don't end up
+// changing the global object's properties, and they can be referenced again in the future.
 function getEnemyCharObjs (idAry) {
 	var objAry = [];
 	// checks each element of idAry[k] + "Enemy" against .domId properties of each element of allChars[j] array
 	// in order to populate the list of enemy objects, using two for-loops.
 	jQuery.each(allChars, function(j){
 		jQuery.each(idAry, function(k){
-			if (idAry[k] === allChars[j].domId) 
-			 { objAry.push(allChars[j]); }	
+			if (idAry[k] === allChars[j].domId) { 
+			 	var newObjDeepCopy = jQuery.extend(true, {}, allChars[j]);
+			 	objAry.push(newObjDeepCopy); 
+			}	
 		});							
 	});
 	return objAry;
@@ -263,7 +270,7 @@ function printSectionHeader (loc, txt) {
 }
 
 // clears the html for a given text ID on the DOM
-function removeText (txtId) {
+function clearText (txtId) {
 	$(txtId).html("");
 }
 	
@@ -296,7 +303,7 @@ $(document).ready(function(){
 			// gets array of enemy character objects according to the div id's of the enemies
 			var enemyCharObjAry = getEnemyCharObjs(enemyCharIdAry);
 
-			removeText("#charselect-header");
+			clearText("#charselect-header");
 
 			gameOn(selectedCharObj, enemyCharObjAry); // Calls game function, sends player and enemy objects.
 		});
@@ -363,7 +370,7 @@ $(document).ready(function(){
 			printSectionHeader("#defender-header", "Defender:");
 
 			// print player and defender's stats
-			removeText("#char-stats");
+			clearText("#char-stats");
 			player.printStats();
 			def.printStats();
 
@@ -376,7 +383,7 @@ $(document).ready(function(){
 
 			$("#attackbtn").on("click", function(){
 				// clears the fight-stats message board in case there is any text there
-				removeText("#fight-stats");
+				clearText("#fight-stats");
 
 				// player attacks def, returns def with reduced HP.
 				def = player.attack(def); 
@@ -387,23 +394,23 @@ $(document).ready(function(){
 					player = def.attack(player); 
 				}
 
-				removeText("#char-stats");
+				clearText("#char-stats");
 				player.printStats();
 				def.printStats();
 
 				// if player dies
 				if (player.healthPoints <= 0) {
 					removeBtn("#attackbtn");
-					clearChar(player);
-					removeText("#yourchar-header");
+					removeChar(player);
+					clearText("#yourchar-header");
 					printMessage("Game over. Your HP is now " + player.healthPoints + ". You Lose.");
 				}
 
 				// if player defeats the enemy
 				else if (def.healthPoints <= 0) {
 					removeBtn("#attackbtn");
-					clearChar(def);
-					removeText("#defender-header");
+					removeChar(def);
+					clearText("#defender-header");
 					printMessage(def.name + " has been defeated. Good job!");
 					
 					// removes defeated enemy from enemyAry
@@ -415,4 +422,24 @@ $(document).ready(function(){
 			}); // end attackbtn event listener			
 		} // end fightMode() function
 	} // end gameOn() function
+
+
+	// checks stats in console log for error checking purposes
+	$(document).keypress(function(e){
+		if (e.key === 'q') {
+			var text = "";
+			jQuery.each(allChars, function(i){
+				for (var k in allChars[i]){
+					if (k==="attack") {break;}
+					else {
+					text += allChars[i][k] + " ";}
+				}
+			});
+			console.log(text);
+			
+			// for (var k in allChars[0]) 
+			// 	{console.log(`allChars[0].${k} = ${allChars[0][k]}`);}
+			
+		}
+	})
 }); // end Document Ready
