@@ -109,13 +109,11 @@ charObj.prototype.attack = function(opponent) {
 // character is a player or an enemy.
 charObj.prototype.setInitialStats = function(str) {
 	if (str === "player") {
-		this.name = "Player " + this.name; // adds the title "Player" before the character's name.
 		this.attackPower = this.apAsPlayer;
 		this.apIncrease = this.apIncrAsPlayer;
 	}
 
 	if (str === "enemy") {
-		this.name = "Enemy " + this.name;
 		this.attackPower = this.apAsEnemy;
 		this.apIncrease = 0; // increase amount is always zero for enemy characters.
 	}
@@ -136,24 +134,50 @@ charObj.prototype.removeChar = function() {
 // available players and objects, which will ultimately be determined when user chooses his/her player
 // character.
 
-var allChars = [];
+// test level characters
+var testLevel = [];
 
 var redChar = new charObj("Red", "red", "character", 125, 0, 0, 20, 25, 10);
 var blueChar = new charObj("Blue", "blue", "character", 110, 0, 0, 10, 20, 15);
 var yellowChar = new charObj("Yellow", "yellow", "character", 150, 0, 0, 25, 30, 3);
 var greenChar = new charObj("Green", "green", "character", 80, 0, 0, 5, 15, 30);
 
-allChars.push(redChar);
-allChars.push(blueChar);
-allChars.push(yellowChar);
-allChars.push(greenChar);
+testLevel.push(redChar);
+testLevel.push(blueChar);
+testLevel.push(yellowChar);
+testLevel.push(greenChar);
+
+// level 1 characters
+var levelOne = [];
+
+var greedoChar = new charObj("Greedo", "greedo", "character", 125, 0, 0, 20, 25, 10);
+var javaChar = new charObj("Java", "java", "character", 110, 0, 0, 10, 20, 15);
+var stormtrooperChar = new charObj("Stormtrooper", "stormtrooper", "character", 150, 0, 0, 25, 30, 3);
+var droidChar = new charObj("Droid", "droid", "character", 80, 0, 0, 5, 15, 30);
+
+levelOne.push(greedoChar);
+levelOne.push(javaChar);
+levelOne.push(stormtrooperChar);
+levelOne.push(droidChar);
+
+// level 2 characters
+var levelTwo = [];
+
+var kylorennChar = new charObj("Kylo Renn", "kylorenn", "character", 125, 0, 0, 20, 25, 10);
+var reyChar = new charObj("Rey", "rey", "character", 110, 0, 0, 10, 20, 15);
+var lukeskywalkerChar = new charObj("Luke Skywalker", "lukeskywalker", "character", 150, 0, 0, 25, 30, 3);
+var finnChar = new charObj("Finn", "finn", "character", 80, 0, 0, 5, 15, 30);
+
+levelTwo.push(kylorennChar);
+levelTwo.push(reyChar);
+levelTwo.push(lukeskywalkerChar);
+levelTwo.push(finnChar);
 
 
 // ******************************************* GLOBAL VARIABLES *******************************************
 
 var attackButton = '<div id="attackbtn-div"><button type="button" id="attackbtn" class="btn btn-danger">Attack!</button></div>';
-var playAgainButton = '<div id="playagainbtn-div"><br/><button type="button" id="playagainbtn" class="btn btn-warning btn-lg">Click here to play again!</button></div>';
-var startIntro = '<div id="startintro-div"><button type="button" id="startintro" class="btn btn-warning">Start Intro!</button></div>';
+var playAgainButton = '<div id="playagainbtn-div"><br/><button type="button" id="playagainbtn" class="btn btn-success btn-lg">Click here to play again!</button></div>';
 
 // ************************************** GLOBAL METHOD DECLARATIONS **************************************
 
@@ -239,16 +263,6 @@ function audioControl(instruction) {
 
 $(document).ready(function(){
 
-	// $("body").load(function(){
-	// 	$("#jumbotext-div").html("Star<br>Wars RPG");
-	// 	$("#jumbotext-div").animate({
-	// 		height: "-=1%",
-	// 		width: "-=1%",
-	// 		fontSize: "-=10px"
-	// 	}, "10000");
-	// }); 
-	
-
 	audioControl("play");
 	startScreen(); // initial function call to start the game!
 
@@ -257,7 +271,7 @@ $(document).ready(function(){
 		// Populates the charselect-space with the menu of character div's upon startScreen() function call
 		printMessage("Select a character!");
 		printSectionHeader("#charselect-header", "Characters:");
-		printCharAry("#charselect-space", allChars);
+		printCharAry("#charselect-space", levelTwo);
 
 		// Activates click event listener
 		$(".character").on("click", function(){
@@ -287,8 +301,8 @@ $(document).ready(function(){
 			// removes text, character DOM elements and their object data (not 
 			// their copies) from the menu
 			clearText("#charselect-header");
-			jQuery.each(allChars, function(i){
-				$("#" + allChars[i].domId).remove();
+			jQuery.each(levelTwo, function(i){
+				$("#" + levelTwo[i].domId).remove();
 			});
 
 			// Calls game function, sends copied objects of player and enemy characters (no DOM
@@ -453,17 +467,17 @@ $(document).ready(function(){
 
 		if (e.key === 'q') {
 			var text = "";
-			jQuery.each(allChars, function(i){
-				for (var k in allChars[i]){
+			jQuery.each(levelTwo, function(i){
+				for (var k in levelTwo[i]){
 					if (k==="attack") {break;}
 					else {
-					text += allChars[i][k] + " ";}
+					text += levelTwo[i][k] + " ";}
 				}
 			});
 			console.log(text);
 			
-			// for (var k in allChars[0]) 
-			// 	{console.log(`allChars[0].${k} = ${allChars[0][k]}`);}
+			// for (var k in levelTwo[0]) 
+			// 	{console.log(`levelTwo[0].${k} = ${levelTwo[0][k]}`);}
 			
 		}
 	})

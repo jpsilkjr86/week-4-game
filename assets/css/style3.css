@@ -1,0 +1,41 @@
+/* Characters for the last level */
+div#kylorenn
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/kylorenn.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#rey
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/rey.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#lukeskywalker
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/lukeskywalker.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#finn
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/finn.jpg");
+	background-size: cover;
+	float: left;
+}
+

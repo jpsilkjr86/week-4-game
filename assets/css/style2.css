@@ -1,0 +1,41 @@
+/* Characters for "level 1" */
+div#greedo
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/greedo.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#java
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/java.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#stormtrooper
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/stormtrooper.jpg");
+	background-size: cover;
+	float: left;
+}
+
+div#droid
+{
+	width: 130px;
+	height: 130px;
+	margin: 10px;
+	background-image: url("../images/droid.jpg");
+	background-size: cover;
+	float: left;
+}
+
