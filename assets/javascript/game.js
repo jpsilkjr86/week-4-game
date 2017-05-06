@@ -152,8 +152,8 @@ allChars.push(greenChar);
 // ******************************************* GLOBAL VARIABLES *******************************************
 
 var attackButton = '<div id="attackbtn-div"><button type="button" id="attackbtn" class="btn btn-danger">Attack!</button></div>';
-var playAgainButton = '<div id="playagainbtn-div"><br/><button type="button" id="playagainbtn" class="btn btn-primary btn-lg">Click here to play again!</button></div>';
-
+var playAgainButton = '<div id="playagainbtn-div"><br/><button type="button" id="playagainbtn" class="btn btn-warning btn-lg">Click here to play again!</button></div>';
+var startIntro = '<div id="startintro-div"><button type="button" id="startintro" class="btn btn-warning">Start Intro!</button></div>';
 
 // ************************************** GLOBAL METHOD DECLARATIONS **************************************
 
@@ -222,12 +222,34 @@ function printSectionHeader (loc, txt) {
 function clearText (txtId) {
 	$(txtId).empty();
 }
+
+function audioControl(instruction) {
+	var aud = $("#starwars-intro");
+	
+	if (instruction === "play")
+	{aud.trigger("play");}
+
+	// This not only pauses the sound bite but also resets the time so it won't resume on a later function call.
+	if (instruction === "stop") 
+	{aud.trigger("pause");}		
+}
 	
 
 // ***************************************** MAIN GAME FUNCTIONS *****************************************
 
 $(document).ready(function(){
 
+	// $("body").load(function(){
+	// 	$("#jumbotext-div").html("Star<br>Wars RPG");
+	// 	$("#jumbotext-div").animate({
+	// 		height: "-=1%",
+	// 		width: "-=1%",
+	// 		fontSize: "-=10px"
+	// 	}, "10000");
+	// }); 
+	
+
+	audioControl("play");
 	startScreen(); // initial function call to start the game!
 
 	function startScreen(){
@@ -371,7 +393,7 @@ $(document).ready(function(){
 
 				// if player dies
 				if (player.healthPoints <= 0) {
-					$("#attackbtn").remove(); // removes attack button
+					removeBtn("#attackbtn"); // removes attack button
 					player.removeChar(); // removes the character from the DOM and bound data
 					clearText("#yourchar-header"); 
 					gameOver(false);
@@ -426,6 +448,9 @@ $(document).ready(function(){
 
 	// checks stats in console log for error checking purposes
 	$(document).keypress(function(e){
+		
+		audioControl("stop");
+
 		if (e.key === 'q') {
 			var text = "";
 			jQuery.each(allChars, function(i){
