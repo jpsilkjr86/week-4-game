@@ -37,7 +37,7 @@ STEPS:
 	6) Restart function
 		a) display game over, and clickable button which can restart the game
 		b) when button is clicked, clear all values (or refresh page?)
-		c) return to Select Character state
+		c) return to selectCharacter state
 
 GAME STATES:
 	1) Select Character state:
