@@ -37,10 +37,10 @@ STEPS:
 	6) Restart function
 		a) display game over, and clickable button which can restart the game
 		b) when button is clicked, clear all values (or refresh page?)
-		c) return to start screen state
+		c) return to Select Character state
 
 GAME STATES:
-	1) Start screen state:
+	1) Select Character state:
 		-user chooses a player character
 	2) Game On state
 		a) Choose enemy state
@@ -232,11 +232,11 @@ function audioControl(instruction) {
 $(document).ready(function(){
 
 	audioControl("play");
-	startScreen(); // initial function call to start the game!
+	selectCharacter(); // initial function call to start the game!
 
-	function startScreen(){
+	function selectCharacter(){
 		
-		// Populates the charselect-space with the menu of character div's upon startScreen() function call
+		// Populates the charselect-space with the menu of character div's upon selectCharacter() function call
 		printMessage("Select a character!");
 		printSectionHeader("#charselect-header", "Characters:");
 		printCharAry("#charselect-space", levelTwo);
@@ -282,9 +282,9 @@ $(document).ready(function(){
 			// element is binding them yet)
 			gameOn(selectedCharCopy, enemyCharCopyAry); 
 		});
-	} // end start screen function
+	} // end selectCharacter function
 
-	// function gameOn receives objects "player" and "enemyAry" from startScreen as arguments
+	// function gameOn receives objects "player" and "enemyAry" from selectCharacter as arguments
 	function gameOn(player, enemyAry){
 		
 		// prints section headers and instructions on DOM
@@ -416,7 +416,7 @@ $(document).ready(function(){
 				clearText("h2");
 				clearText("h4");
 				removeBtn("#playagainbtn");
-				startScreen();
+				selectCharacter();
 			});
 		}
 
