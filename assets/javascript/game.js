@@ -97,7 +97,7 @@ function charObj (name, domId, domClass, // these 3 help the program identify & 
 // adds method to objects of charObj type called attack() which is when player attacks an enemy
 charObj.prototype.attack = function(opponent) {
 	opponent.healthPoints -= this.attackPower;
-	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
+	$("#fight-stats").append(this.name + " inflicted " +   // prints stats on the screen.
 		this.attackPower + " points of damage on " + opponent.name + ".<br/>");
 	this.attackPower += this.apIncrease;  // Attack value increases each time (only for player)
 	return opponent;
@@ -106,7 +106,7 @@ charObj.prototype.attack = function(opponent) {
 // adds method to objects of charObj type called counterAttack() which takes the opponent's object argument.
 charObj.prototype.counterAttack = function(opponent) {
 	opponent.healthPoints -= this.counterAP;
-	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
+	$("#fight-stats").append(this.name + " inflicted " +   // prints stats on the screen.
 		this.counterAP + " points of damage on " + opponent.name + ".<br/>");
 	return opponent;
 }
@@ -456,20 +456,20 @@ $(document).ready(function(){
 		
 		audioControl("stop");
 
-		if (e.key === 'q') {
-			var text = "";
-			jQuery.each(levelTwo, function(i){
-				for (var k in levelTwo[i]){
-					if (k==="attack") {break;}
-					else {
-					text += levelTwo[i][k] + " ";}
-				}
-			});
-			console.log(text);
+		// if (e.key === 'q') {
+		// 	var text = "";
+		// 	jQuery.each(levelTwo, function(i){
+		// 		for (var k in levelTwo[i]){
+		// 			if (k==="attack") {break;}
+		// 			else {
+		// 			text += levelTwo[i][k] + " ";}
+		// 		}
+		// 	});
+		// 	console.log(text);
 			
 			// for (var k in levelTwo[0]) 
 			// 	{console.log(`levelTwo[0].${k} = ${levelTwo[0][k]}`);}
 			
-		}
+		// }
 	})
 }); // end Document Ready
