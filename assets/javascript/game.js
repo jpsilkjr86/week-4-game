@@ -82,48 +82,42 @@ PSEUDO-CODE:
 // ********************************************* GLOBAL OBJECTS *********************************************
 // object constructor for all characters
 function charObj (name, domId, domClass, // these 3 help the program identify & bind the objects to the DOM
-	healthPoints, attackPower, apIncrease, // these 3 are base stats. AP and apIncrease are 0 before char is selected
-	apAsPlayer, apAsEnemy, apIncrAsPlayer) {  // these 3 are assigned depending on if char is player or enemy
+	healthPoints, attackPower, apIncrease, // attackPower and apIncrease are only for player characters
+	counterAP) {  // counterAP is only for when the character is the enemy
 
 	this.name = name; // for convenience in getting the character's name
 	this.domId = domId;  // corresponds to id on the DOM, helping bind the object to the DOM
 	this.domClass = domClass; // corresponds to its class on the DOM, for jQuery selecting and CSS styling
 	this.healthPoints = healthPoints;  // same no matter if the char is a player or enemy
-	this.attackPower = attackPower; // how much HP can the character inflict on another
+	this.attackPower = attackPower; // how much HP dmg can the char inflict on another, when char is player
 	this.apIncrease = apIncrease;  // amount of attack power that increases each time the player attacks, initial = 0
-	this.apAsPlayer = apAsPlayer; // attack power if character is selected as player
-	this.apAsEnemy = apAsEnemy; // attack power if character is selected as enemy
-	this.apIncrAsPlayer = apIncrAsPlayer; // attack power increase amount if character is selected as player
+	this.counterAP = counterAP; // counter attack power, only if character is an enemy
 }
 
-// adds method to objects of charObj type called attack() which takes the opponent's object argument.
+// adds method to objects of charObj type called attack() which is when player attacks an enemy
 charObj.prototype.attack = function(opponent) {
 	opponent.healthPoints -= this.attackPower;
 	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
 		this.attackPower + " points of damage on " + opponent.name + ".<br/>");
-	this.attackPower += this.apIncrease;  // Attack value increases each time. If char is an enemy, then incr = 0.
+	this.attackPower += this.apIncrease;  // Attack value increases each time (only for player)
 	return opponent;
 }
 
-// adds method to objects of charObj type called setInitialStats() which sets stats according to whether the 
-// character is a player or an enemy.
-charObj.prototype.setInitialStats = function(str) {
-	if (str === "player") {
-		this.attackPower = this.apAsPlayer;
-		this.apIncrease = this.apIncrAsPlayer;
-	}
-
-	if (str === "enemy") {
-		this.attackPower = this.apAsEnemy;
-		this.apIncrease = 0; // increase amount is always zero for enemy characters.
-	}
+// adds method to objects of charObj type called counterAttack() which takes the opponent's object argument.
+charObj.prototype.counterAttack = function(opponent) {
+	opponent.healthPoints -= this.counterAP;
+	$("#fight-stats").append(this.name + " has inflicted " +   // prints stats on the screen.
+		this.counterAP + " points of damage on " + opponent.name + ".<br/>");
+	return opponent;
 }
 
+// prints stats on the DOM for the user to see
 charObj.prototype.printStats = function() {
-	var charStats = (this.name + "'s Stats:<br/>HP: " + this.healthPoints + 
-		"&nbsp;&nbsp;&nbsp;Attack Power: " + this.attackPower + 
-		"&nbsp;&nbsp;&nbsp;Attack Power Increase: " + this.apIncrease + "<br/>");
-	$("#char-stats").append(charStats);
+	var charStats = (this.name + "<br/>HP: " + this.healthPoints);
+	$("#" + this.domId + "stats").remove(); // clears any stat text that might be there from before
+	$("#" + this.domId).append('<p class="stats" id="' + this.domId + 'stats"' + // give stats text a unique id
+		'style="margin-top:80px; margin-left:10px; font-size:14px">' 
+		+ charStats + '</p>');
 }
 
 charObj.prototype.removeChar = function() {
@@ -137,10 +131,10 @@ charObj.prototype.removeChar = function() {
 // test level characters
 var testLevel = [];
 
-var redChar = new charObj("Red", "red", "character", 125, 0, 0, 20, 25, 10);
-var blueChar = new charObj("Blue", "blue", "character", 110, 0, 0, 10, 20, 15);
-var yellowChar = new charObj("Yellow", "yellow", "character", 150, 0, 0, 25, 30, 3);
-var greenChar = new charObj("Green", "green", "character", 80, 0, 0, 5, 15, 30);
+var redChar = new charObj("Red", "red", "character", 125, 20, 10, 25);
+var blueChar = new charObj("Blue", "blue", "character", 110, 10, 15, 20);
+var yellowChar = new charObj("Yellow", "yellow", "character", 150, 25, 3, 30);
+var greenChar = new charObj("Green", "green", "character", 80, 5, 30, 15);
 
 testLevel.push(redChar);
 testLevel.push(blueChar);
@@ -150,10 +144,10 @@ testLevel.push(greenChar);
 // level 1 characters
 var levelOne = [];
 
-var greedoChar = new charObj("Greedo", "greedo", "character", 125, 0, 0, 20, 25, 10);
-var javaChar = new charObj("Java", "java", "character", 110, 0, 0, 10, 20, 15);
-var stormtrooperChar = new charObj("Stormtrooper", "stormtrooper", "character", 150, 0, 0, 25, 30, 3);
-var droidChar = new charObj("Droid", "droid", "character", 80, 0, 0, 5, 15, 30);
+var greedoChar = new charObj("Greedo", "greedo", "character", 125, 20, 10, 25);
+var javaChar = new charObj("Java", "java", "character", 110, 10, 15, 20);
+var stormtrooperChar = new charObj("Stormtrooper", "stormtrooper", "character", 150, 25, 3, 30);
+var droidChar = new charObj("Droid", "droid", "character", 80, 5, 30, 15);
 
 levelOne.push(greedoChar);
 levelOne.push(javaChar);
@@ -163,10 +157,10 @@ levelOne.push(droidChar);
 // level 2 characters
 var levelTwo = [];
 
-var kylorennChar = new charObj("Kylo Renn", "kylorenn", "character", 125, 0, 0, 20, 25, 10);
-var reyChar = new charObj("Rey", "rey", "character", 110, 0, 0, 10, 20, 15);
-var lukeskywalkerChar = new charObj("Luke Skywalker", "lukeskywalker", "character", 150, 0, 0, 25, 30, 3);
-var finnChar = new charObj("Finn", "finn", "character", 80, 0, 0, 5, 15, 30);
+var kylorennChar = new charObj("Kylo Renn", "kylorenn", "character", 125, 20, 10, 25);
+var reyChar = new charObj("Rey", "rey", "character", 110, 10, 15, 20);
+var lukeskywalkerChar = new charObj("Luke Skywalker", "lukeskywalker", "character", 150, 25, 3, 30);
+var finnChar = new charObj("Finn", "finn", "character", 80, 5, 30, 15);
 
 levelTwo.push(kylorennChar);
 levelTwo.push(reyChar);
@@ -273,6 +267,11 @@ $(document).ready(function(){
 		printSectionHeader("#charselect-header", "Characters:");
 		printCharAry("#charselect-space", levelTwo);
 
+		// prints stats
+		jQuery.each(levelTwo, function(i){
+			levelTwo[i].printStats();
+		});
+
 		// Activates click event listener
 		$(".character").on("click", function(){
 
@@ -336,14 +335,12 @@ $(document).ready(function(){
 			enemyAry[i] = $("#" + enemyAry[i].domId).data();
 		});
 
-		// sets initial stats for player and enemy.
-		player.setInitialStats("player");
-		jQuery.each(enemyAry, function(i){
-			enemyAry[i].setInitialStats("enemy");
-		});
-
 		// prints stats for the player
 		player.printStats();
+		// prints stats for enemies
+		jQuery.each(enemyAry, function(i){
+			enemyAry[i].printStats();
+		});
 
 		// Calls enemySelect function
 		enemySelect();
@@ -374,11 +371,6 @@ $(document).ready(function(){
 			// prints instructions and section heading on the DOM
 			printMessage("Press the Attack! button when you're ready to fight!");
 			printSectionHeader("#defender-header", "Defender:");
-
-			// prints player and defender's stats
-			clearText("#char-stats");
-			player.printStats();
-			def.printStats();
 			
 			addBtn(attackButton, "#defender-space");
 
@@ -395,13 +387,12 @@ $(document).ready(function(){
 				// if the defender is still alive
 				if (def.healthPoints > 0) {
 					// defender attacks player, returns player with reduced HP.
-					player = def.attack(player); 
+					player = def.counterAttack(player); 
 					// this condition ensures that the enemy doesn't somehow strike 
 					// back while already dead.
 				}
 
 				// prints updated stats for both characters
-				clearText("#char-stats");
 				player.printStats();
 				def.printStats();
 

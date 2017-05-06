@@ -9,6 +9,9 @@ h1, h2, h3, h4, h5, h6, p
 	text-shadow: 2px 2px 2px black, 0 0 5px white, 1 1 1px black;
 }
 
+p.stats
+{text-shadow: 2px 2px 2px black, 0 0 5px white, 0 0 2px black;}
+
 .character
 { border: 5px solid #666666; }
 
