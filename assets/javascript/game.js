@@ -41,41 +41,15 @@ STEPS:
 
 GAME STATES:
 	1) Start screen state:
-		-user can only choose a player character
+		-user chooses a player character
 	2) Game On state
 		a) Choose enemy state
-			-user can only choose an enemy to fight
+			-user chooses an enemy to fight
 		b) Fight state
-			-user can only click the attack button
+			-user clicks the attack button
+		*both stats above pass the ball back and forth until game over
 	3) Game Over state
-		-user can only click the restart game button
-
-PSEUDO-CODE:
-
-	Declare global object variables for each character.
-		-Each character is set as an object with certain stats.
-			*By default, the HP is the same whether the character is an enemy or a player.
-			*The attack power and attack power increase amount is set intitially to zero.
-			*If the character is chosen as the player, then the attack power will be lower but will have 
-			an attack power increase amount greater than zero.
-			*If the character is an enemy, then the attack power is set higher but will not increase in the game.
-		-When user selects player character, it will send the objects as parameters, and game function will 
-		redeclare a new object instance of player and enemies as new local objects
-
-
-	if startScreenState === true
-		event listener: click on character
-			call gameOn function, send id [$(this).attr('id')] as parameter. id name matches object name.
-
-	if gameOnState === true
-
-		if chooseEnemyState === true
-
-		if fightState === true
-
-		if gameOverState === true
-
-	if gameOverState === true
+		-user can click play again button
 
 */
 
