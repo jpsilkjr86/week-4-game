@@ -267,7 +267,7 @@ $(document).ready(function(){
 			// makes a deep copy of each enemy char object and pushes each one onto an array
 			var enemyCharCopyAry = [];
 			jQuery.each(enemyCharObjAry, function(i){
-				var enemyCharCopy = enemyCharObjAry[i];
+				var enemyCharCopy = jQuery.extend(true, {}, enemyCharObjAry[i]);
 				enemyCharCopyAry.push(enemyCharCopy);
 			});
 
@@ -430,20 +430,20 @@ $(document).ready(function(){
 		
 		audioControl("stop");
 
-		// if (e.key === 'q') {
-		// 	var text = "";
-		// 	jQuery.each(levelTwo, function(i){
-		// 		for (var k in levelTwo[i]){
-		// 			if (k==="attack") {break;}
-		// 			else {
-		// 			text += levelTwo[i][k] + " ";}
-		// 		}
-		// 	});
-		// 	console.log(text);
+		if (e.key === 'q') {
+			var text = "";
+			jQuery.each(levelTwo, function(i){
+				for (var k in levelTwo[i]){
+					if (k==="attack") {break;}
+					else {
+					text += levelTwo[i][k] + " ";}
+				} // end of for loop
+			}); // end of jQuery.each
+			console.log(text);
 			
 			// for (var k in levelTwo[0]) 
 			// 	{console.log(`levelTwo[0].${k} = ${levelTwo[0][k]}`);}
 			
-		// }
-	})
+		} // end of if (e.key === 'q')
+	}); // end of document.keypress
 }); // end Document Ready
